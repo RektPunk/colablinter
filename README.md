@@ -27,7 +27,7 @@ pip install colablinter
 ```
 
 ## Usage
-The magic commands are automatically registered upon package import.
+The extension must be explicitly loaded in the notebook session before use.
 
 ```python
 %load_ext colablinter
