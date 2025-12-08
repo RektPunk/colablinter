@@ -1,0 +1,29 @@
+[project]
+name = "colablinter"
+version = "0.0.1"
+description = "Linting and formatting Python code in Google Colab."
+readme = "README.md"
+authors = [
+    {name = "RektPunk", email = "rektpunk@gmail.com"},
+]
+keywords = ["jupyter", "colab", "ipython", "magic", "ruff", "isort", "linter"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Framework :: IPython",
+]
+requires-python = ">=3.12"
+dependencies = [
+    "ipython>=7.34.0",
+    "isort>=7.0.0",
+    "ruff>=0.14.8",
+]
+
+[project.urls]
+repository = "https://github.com/RektPunk/colablinter"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.5.0",
+]
