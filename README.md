@@ -18,6 +18,12 @@ It integrates the high-speed linter **`ruff`** and import sorter **`isort`** to 
 
 After executing a magic command, the **original code** of the cell is executed (if applicable to the command).
 
+## Full Notebook Check
+| function | Description |
+| :--- | :--- |
+| **`check_full()`** | Displays a linting report for entire notebook. |
+
+
 ## Installation
 
 Requires Python 3.12 or newer.
@@ -79,4 +85,11 @@ The extension must be explicitly loaded in the notebook session before use.
 
     def calculate_long_sum(a, b, c, d, e, f):
         return (a + b + c) * (d + e + f)  # messy
+    ```
+
+3. Full notebook check
+
+    Use `check_full()` to see linting reports for entire notebook.
+    ```python
+    check_full()
     ```
