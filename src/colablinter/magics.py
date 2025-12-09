@@ -45,7 +45,7 @@ class LintMagics(Magics):
         self.__execute(cell)
 
     def __check(self, cell: str) -> None:
-        print("--- Code Quality & Style Check Report ---")
+        print("---- Code Quality & Style Check Report ----")
         if report := _execute_command(
             f"ruff check --stdin-filename={self._FILE_NAME}", input_data=cell
         ):
@@ -75,7 +75,7 @@ class LintMagics(Magics):
             formatted_code if formatted_code is not None else _formatted_code
         )
         if cell.strip() != code_to_print.strip():
-            print("# Formatted Code (Copy & Paste Below)")
+            print("# Formatted Code")
             print(formatted_code.strip())
         else:
             print("[ColabLinter:INFO] Code already formatted. No changes needed.")

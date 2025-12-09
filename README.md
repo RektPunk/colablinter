@@ -73,7 +73,7 @@ The extension must be explicitly loaded in the notebook session before use.
 
     Output examples:
     ```python
-    # Formatted Code (Copy & Paste Below)
+    # Formatted Code
     import os
     import sys
     from datetime import datetime
