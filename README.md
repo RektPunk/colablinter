@@ -45,13 +45,13 @@ The extension must be explicitly loaded in the notebook session before use.
 
     Output examples:
     ```bash
-    --- Code Quality & Style Check Report ---
+    ---- Code Quality & Style Check Report ----
     F821 Undefined name `y`
-    --> notebook_cell.py:4:16
+    --> notebook_cell.py:3:16
     |
     2 | def invalid_code(x):
     3 |     return x + y # 'y' is not defined
-    |                ^
+    |                  ^
     |
 
     Found 1 error.
