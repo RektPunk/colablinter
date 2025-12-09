@@ -40,8 +40,7 @@ The extension must be explicitly loaded in the notebook session before use.
     %%check
 
     def invalid_code(x):
-        # F821: name 'y' is not defined
-        return x + y
+        return x + y # 'y' is not defined
     ```
 
     Output examples:
@@ -51,8 +50,7 @@ The extension must be explicitly loaded in the notebook session before use.
     --> notebook_cell.py:4:16
     |
     2 | def invalid_code(x):
-    3 |     # F821: name 'y' is not defined
-    4 |     return x + y
+    3 |     return x + y # 'y' is not defined
     |                ^
     |
 
