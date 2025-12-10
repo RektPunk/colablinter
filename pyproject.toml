@@ -24,6 +24,9 @@ dependencies = [
 [project.urls]
 repository = "https://github.com/RektPunk/colablinter"
 
+[project.scripts]
+colablinter = "colablinter.cli:main"
+
 [dependency-groups]
 dev = [
     "pre-commit>=4.5.0",
