@@ -1,6 +1,6 @@
 [project]
 name = "colablinter"
-version = "0.0.5"
+version = "0.0.6"
 description = "Linting and formatting Python code in Google Colab."
 readme = "README.md"
 authors = [

@@ -5,24 +5,21 @@
 
 ## Overview
 
-**`colablinter`** is an **IPython magic command extension** for Jupyter and Google Colab environments.
+**`colablinter`** is an **IPython magic command extension** designed specifically for Jupyter and Google Colab notebooks.
 
-It integrates the high-speed linter **`ruff`** and import sorter **`isort`** to perform cell-by-cell code quality and formatting checks.
+It integrates the high-speed linter **`ruff`** and import sorter **`isort`** to perform code quality checks, fix issues, and enforce formatting standards.
+
+It allows developers to lint and format code on a **cell-by-cell** basis or check the **entire notebook** with simple commands.
 
 ## Magic cell Commands
 
-| Command | Role | Description |
-| :--- | :--- | :--- |
-| **`%%cl_check`** | **Quality Check** | Displays a linting report. |
-| **`%%cl_format`** | **Format, Sort** | Displays a formatting preview (**for copy/paste**) |
+| Command | Type | Role | Description |
+| :--- | :--- | :--- | :--- |
+| **`%%cl_check`** | Cell Magic | Quality Check | Displays a linting report for the **current cell's code**. |
+| **`%%cl_format`** | Cell Magic | Format Preview | **Formats the current cell's code** and displays the result for manual application (copy/paste). |
+| **`%cl_check`** | Line Magic | Quality Check | Displays a linting report for the **entire saved notebook** (requires Google Drive mount). |
 
 After executing a magic command, the **original code** of the cell is executed (if applicable to the command).
-
-## Magic line Commands
-
-| Command | Role | Description |
-| :--- | :--- | :--- |
-| **`%cl_check`** | **Quality Check** | Displays a linting report for entire notebook. |
 
 ## Installation
 
@@ -39,9 +36,9 @@ The extension must be explicitly loaded in the notebook session before use.
 %load_ext colablinter
 ```
 
-1. Check Code Quality
+1. Check cell quality (`%%cl_check`)
 
-    Use `%%cl_check` to see linting reports.
+    Use `%%cl_check` to see linting reports for the code below the command.
     ```python
     %%cl_check
 
@@ -63,10 +60,12 @@ The extension must be explicitly loaded in the notebook session before use.
     Found 1 error.
     -------------------------------------------
     ```
+    Note: After the report is displayed, the code in the cell executes as normal. If errors exist (like F821), execution will fail.
 
-2. Format code preview
+2. Format cell preview (`%%cl_format`)
 
-    `%%cl_format` will display the formatted code, but the cell executes the original code.
+    `%%cl_format` runs the formatter and displays the corrected code. The cell executes the original code, so you must copy the formatted output and paste it back into the cell to apply the changes.
+
     ```python
     %%cl_format
     import sys
@@ -87,9 +86,10 @@ The extension must be explicitly loaded in the notebook session before use.
         return (a + b + c) * (d + e + f)  # messy
     ```
 
-3. Full notebook check
+3. Check entire notebook (`%cl_check`)
 
-    Use `%cl_check` command to see linting reports for entire notebook.
+    Use line magic `%cl_check` to check across the entire saved notebook file (requires the notebook to be saved to Google Drive and mounted).
+
     ```python
     %cl_check
     ```
