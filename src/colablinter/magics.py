@@ -58,32 +58,28 @@ class LintCellMagics(Magics):
 class LintLineMagic(Magics):
     _linter_instance = None
 
-    def __init__(self, shell):
-        super().__init__(shell)
-        self._ensure_linter_initialized()
-
-    def _ensure_linter_initialized(self):
-        if LintLineMagic._linter_instance is None:
-            try:
-                LintLineMagic._linter_instance = ColabLinter()
-            except Exception as e:
-                print(
-                    f"[ColabLinter:FATAL ERROR] Initialization failed: {e}",
-                    file=sys.stderr,
-                )
-                LintLineMagic._linter_instance = None
-
     @line_magic
     def cl_check(self, line):
         """%cl_check"""
-        if LintLineMagic._linter_instance is None:
-            print(
-                "[ColabLinter:ERROR] ColabLinter is not initialized. Please check initialization error above.",
-                file=sys.stderr,
-            )
+        if not self.__ensure_linter_initialized():
             return
 
         try:
             LintLineMagic._linter_instance.check()
         except Exception as e:
             print(f"[ColabLinter:ERROR] Check command failed: {e}", file=sys.stderr)
+
+    def __ensure_linter_initialized(self):
+        if LintLineMagic._linter_instance:
+            return True
+
+        try:
+            LintLineMagic._linter_instance = ColabLinter()
+            return True
+        except Exception as e:
+            print(
+                f"[ColabLinter:FATAL ERROR] Initialization failed: {e}",
+                file=sys.stderr,
+            )
+            LintLineMagic._linter_instance = None
+            return False
