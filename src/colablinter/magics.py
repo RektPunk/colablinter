@@ -60,7 +60,6 @@ class LintLineMagic(Magics):
 
     @line_magic
     def cl_check(self, line):
-        """%cl_check"""
         if not self.__ensure_linter_initialized():
             return
 
