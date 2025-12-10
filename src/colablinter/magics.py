@@ -60,16 +60,15 @@ class LintLineMagic(Magics):
 
     @line_magic
     def cl_check(self, line):
-        """%cl_check"""
         if not self.__ensure_linter_initialized():
             return
 
         try:
             LintLineMagic._linter_instance.check()
         except Exception as e:
-            print(f"[ColabLinter:ERROR] Check command failed: {e}", file=sys.stderr)
+            print(f"[ColabLinter:ERROR] %cl_check command failed: {e}", file=sys.stderr)
 
-    def __ensure_linter_initialized(self):
+    def __ensure_linter_initialized(self) -> bool:
         if LintLineMagic._linter_instance:
             return True
 
@@ -78,7 +77,7 @@ class LintLineMagic(Magics):
             return True
         except Exception as e:
             print(
-                f"[ColabLinter:FATAL ERROR] Initialization failed: {e}",
+                f"[ColabLinter:ERROR] Line magic initialization failed: {e}",
                 file=sys.stderr,
             )
             LintLineMagic._linter_instance = None
