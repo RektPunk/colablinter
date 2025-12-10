@@ -18,10 +18,10 @@ It integrates the high-speed linter **`ruff`** and import sorter **`isort`** to 
 
 After executing a magic command, the **original code** of the cell is executed (if applicable to the command).
 
-## Full Notebook Check
-| function | Description |
+## Terminal Command
+| Command | Description |
 | :--- | :--- |
-| **`check_full()`** | Displays a linting report for entire notebook. |
+| **`colablinter check`** | Displays a linting report for entire notebook. |
 
 
 ## Installation
@@ -89,7 +89,7 @@ The extension must be explicitly loaded in the notebook session before use.
 
 3. Full notebook check
 
-    Use `check_full()` to see linting reports for entire notebook.
+    Use `colablinter check` command to see linting reports for entire notebook.
     ```python
-    check_full()
+    !colablinter check
     ```
