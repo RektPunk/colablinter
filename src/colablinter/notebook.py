@@ -47,26 +47,29 @@ def _get_notebook_filename() -> str | None:
         api_url = f"http://{colab_ip}:9000/api/sessions"
 
         response = requests.get(api_url, timeout=5)
-        response.raise_for_status()
+        if response.status_code != 200:
+            response.raise_for_status()
+            raise requests.exceptions.HTTPError(
+                f"API Unexpected HTTP Error {response.status_code}: {response.reason}"
+            )
+        sessions: list[dict] = response.json()
+        if sessions is None:
+            raise RuntimeError("Failed to get Colab instance sessions.")
 
-        if response.status_code == 200:
-            sessions: list[dict] = response.json()
-            if sessions is None:
-                raise RuntimeError("Failed to get Colab instance sessions.")
+        if kernel_id:
+            for session in sessions:
+                if session.get("kernel", {}).get("id") == kernel_id:
+                    print(
+                        f"[ColabLinter:INFO] Kernel ID ({kernel_id}) matched with session."
+                    )
+                    encoded_filename = session.get("name")
+                    return urllib.parse.unquote(encoded_filename)
 
-            if kernel_id:
-                for session in sessions:
-                    if session.get("kernel", {}).get("id") == kernel_id:
-                        print(
-                            f"[ColabLinter:INFO] Kernel ID ({kernel_id}) matched with session."
-                        )
-                        encoded_filename = session.get("name")
-                        return urllib.parse.unquote(encoded_filename)
+        encoded_filename = sessions[0].get("name")
+        if encoded_filename:
+            return urllib.parse.unquote(encoded_filename)
+        return
 
-            encoded_filename = sessions[0].get("name")
-            if encoded_filename:
-                return urllib.parse.unquote(encoded_filename)
-            return
     except requests.exceptions.Timeout:
         raise requests.exceptions.Timeout(f"API request timed out: {api_url}")
     except requests.exceptions.HTTPError as e:
@@ -143,7 +146,7 @@ class ColabLinter:
     def __check_notebook_filename_exists(self) -> None:
         if self.notebook_filename is None:
             raise ValueError(
-                "Could not retrieve current notebook filename. Check if the file is saved."
+                "Could not retrieve current filename. Check if the file is saved."
             )
         print(
             f"[ColabLinter:INFO] Notebook filename detected: {self.notebook_filename}"
@@ -158,6 +161,6 @@ class ColabLinter:
     def __check_notebook_path_exists(self) -> None:
         if self.notebook_path is None:
             raise ValueError(
-                "File not found in Google Drive. Ensure the notebook is in 'My Drive'."
+                f"File not found in Google Drive. Ensure the notebook is in '{_BASE_PATH}'."
             )
         print(f"[ColabLinter:INFO] File path found: {self.notebook_path}")
