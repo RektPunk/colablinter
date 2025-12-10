@@ -1,4 +1,5 @@
 import os
+import urllib.parse
 
 import ipykernel
 import requests
@@ -8,7 +9,23 @@ from .utils import execute_command
 _BASE_PATH = "/content/drive"
 
 
+def _colab_drive_mount() -> None:
+    try:
+        from google.colab import drive
+
+        if not os.path.exists(_BASE_PATH):
+            print("[ColabLinter:INFO] Mounting Google Drive required.")
+            drive.mount(_BASE_PATH)
+    except ImportError:
+        raise ImportError(
+            "This command requires the 'google.colab' environment.\n"
+            "The `colablinter` must be run **inside a Google Colab notebook** to access the kernel and Drive.\n"
+            "If you are already in Colab, ensure you haven't renamed the `google.colab` package or run the command outside a code cell."
+        )
+
+
 def _get_notebook_filename() -> str | None:
+    print("[ColabLinter:INFO] Searching matched filename in kernel and session.")
     try:
         connection_file = ipykernel.get_connection_file()
         kernel_id = (
@@ -16,14 +33,15 @@ def _get_notebook_filename() -> str | None:
             .removeprefix("kernel-")
             .removesuffix(".json")
         )
-    except Exception:
+    except Exception as e:
         kernel_id = None
+        print(f"[ColabLinter:WARNING] Failed to retrieve kernel ID: {e}")
         pass
 
     try:
         colab_ip = execute_command("hostname -I", "")
         if colab_ip is None:
-            raise Exception
+            raise RuntimeError("Failed to get Colab instance IP address.")
 
         colab_ip = colab_ip.split()[0].strip()
         api_url = f"http://{colab_ip}:9000/api/sessions"
@@ -34,14 +52,29 @@ def _get_notebook_filename() -> str | None:
         if response.status_code == 200:
             sessions: list[dict] = response.json()
             if sessions is None:
-                return
+                raise RuntimeError("Failed to get Colab instance sessions.")
 
             if kernel_id:
                 for session in sessions:
                     if session.get("kernel", {}).get("id") == kernel_id:
-                        print(f"[ColabLinter:INFO] Kernel ID ({kernel_id}) matched.")
-                        return session.get("name")
-            return sessions[0].get("name")
+                        print(
+                            f"[ColabLinter:INFO] Kernel ID ({kernel_id}) matched with session."
+                        )
+                        encoded_filename = session.get("name")
+                        return urllib.parse.unquote(encoded_filename)
+
+            encoded_filename = sessions[0].get("name")
+            if encoded_filename:
+                return urllib.parse.unquote(encoded_filename)
+            return
+    except requests.exceptions.Timeout:
+        raise requests.exceptions.Timeout(f"API request timed out: {api_url}")
+    except requests.exceptions.HTTPError as e:
+        raise requests.exceptions.HTTPError(
+            f"API HTTP Error {e.response.status_code}: {e.response.reason}"
+        )
+    except requests.exceptions.RequestException as e:
+        raise requests.exceptions.RequestException(f"Failed to connect to API: {e}")
     except Exception:
         return
 
@@ -70,25 +103,10 @@ def _check_entire_notebook(notebook_path: str) -> None:
                 "[ColabLinter:INFO] No issues found in the entire notebook. Code is clean."
             )
     except FileNotFoundError:
-        print(f"[ColabLinter:ERROR] File not founded: {notebook_path}.")
+        raise FileNotFoundError(f"File not founded: {notebook_path}.")
     except Exception as e:
-        print(f"[ColabLinter:ERROR] Check full failed: {e}")
+        raise RuntimeError(f"%cl_check failed: {e}")
     print("-------------------------------------------------------------")
-
-
-def _colab_drive_mount() -> None:
-    try:
-        from google.colab import drive
-
-        if not os.path.exists(_BASE_PATH):
-            print("[ColabLinter:INFO] Mounting Google Drive required.")
-            drive.mount(_BASE_PATH)
-    except ImportError:
-        raise ImportError(
-            "\n[ColabLinter:FATAL ERROR] This command requires the 'google.colab' environment.\n"
-            "The `colablinter` must be run **inside a Google Colab notebook** to access the kernel and Drive.\n"
-            "If you are already in Colab, ensure you haven't renamed the `google.colab` package or run the command outside a code cell."
-        )
 
 
 class ColabLinter:
@@ -102,8 +120,9 @@ class ColabLinter:
         return cls.__instance
 
     def __init__(self):
-        if ColabLinter._notebook_path_cache is not None:
+        if ColabLinter._notebook_path_cache:
             return
+
         _colab_drive_mount()
 
         ColabLinter._notebook_filename_cache = _get_notebook_filename()
@@ -118,15 +137,13 @@ class ColabLinter:
     @property
     def notebook_filename(self) -> str:
         if ColabLinter._notebook_filename_cache is None:
-            raise ValueError(
-                "[ColabLinter:ERROR] Notebook filename has not been initialized."
-            )
+            raise ValueError("Notebook filename has not been initialized.")
         return ColabLinter._notebook_filename_cache
 
     def __check_notebook_filename_exists(self) -> None:
         if self.notebook_filename is None:
             raise ValueError(
-                "[ColabLinter:Error] Could not retrieve current notebook filename. Check if the file is saved."
+                "Could not retrieve current notebook filename. Check if the file is saved."
             )
         print(
             f"[ColabLinter:INFO] Notebook filename detected: {self.notebook_filename}"
@@ -135,14 +152,12 @@ class ColabLinter:
     @property
     def notebook_path(self) -> str:
         if ColabLinter._notebook_path_cache is None:
-            raise ValueError(
-                "[ColabLinter:ERROR] Notebook path has not been initialized."
-            )
+            raise ValueError("Notebook path has not been initialized.")
         return ColabLinter._notebook_path_cache
 
     def __check_notebook_path_exists(self) -> None:
         if self.notebook_path is None:
             raise ValueError(
-                "[ColabLinter:ERROR] File not found in Google Drive. Ensure the notebook is in 'My Drive'."
+                "File not found in Google Drive. Ensure the notebook is in 'My Drive'."
             )
         print(f"[ColabLinter:INFO] File path found: {self.notebook_path}")
