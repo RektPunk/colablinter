@@ -1,6 +1,6 @@
 [project]
 name = "colablinter"
-version = "0.0.4"
+version = "0.0.5"
 description = "Linting and formatting Python code in Google Colab."
 readme = "README.md"
 authors = [
@@ -23,9 +23,6 @@ dependencies = [
 
 [project.urls]
 repository = "https://github.com/RektPunk/colablinter"
-
-[project.scripts]
-colablinter = "colablinter.cli:main"
 
 [dependency-groups]
 dev = [

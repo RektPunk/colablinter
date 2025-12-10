@@ -1,5 +1,8 @@
-from IPython.core.magic import Magics, cell_magic, magics_class
+import sys
 
+from IPython.core.magic import Magics, cell_magic, line_magic, magics_class
+
+from .notebook import ColabLinter
 from .utils import execute_command
 
 _FILE_NAME = "notebook_cell.py"
@@ -9,14 +12,14 @@ _ISORT_COMMAND = "isort --profile=black -"
 
 
 @magics_class
-class LintMagics(Magics):
+class LintCellMagics(Magics):
     @cell_magic
-    def check(self, line: str, cell: str) -> None:
+    def cl_check(self, line: str, cell: str) -> None:
         self.__check(cell)
         self.__execute(cell)
 
     @cell_magic
-    def format(self, line: str, cell: str) -> None:
+    def cl_format(self, line: str, cell: str) -> None:
         self.__format(cell)
         self.__execute(cell)
 
@@ -49,3 +52,38 @@ class LintMagics(Magics):
             self.shell.run_cell(cell, silent=False, store_history=True)
         except Exception as e:
             print(f"[ColabLinter:ERROR] Code execution failed: {e}")
+
+
+@magics_class
+class LintLineMagic(Magics):
+    _linter_instance = None
+
+    def __init__(self, shell):
+        super().__init__(shell)
+        self._ensure_linter_initialized()
+
+    def _ensure_linter_initialized(self):
+        if LintLineMagic._linter_instance is None:
+            try:
+                LintLineMagic._linter_instance = ColabLinter()
+            except Exception as e:
+                print(
+                    f"[ColabLinter:FATAL ERROR] Initialization failed: {e}",
+                    file=sys.stderr,
+                )
+                LintLineMagic._linter_instance = None
+
+    @line_magic
+    def cl_check(self, line):
+        """%cl_check"""
+        if LintLineMagic._linter_instance is None:
+            print(
+                "[ColabLinter:ERROR] ColabLinter is not initialized. Please check initialization error above.",
+                file=sys.stderr,
+            )
+            return
+
+        try:
+            LintLineMagic._linter_instance.check()
+        except Exception as e:
+            print(f"[ColabLinter:ERROR] Check command failed: {e}", file=sys.stderr)
