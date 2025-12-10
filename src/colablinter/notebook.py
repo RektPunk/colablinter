@@ -102,7 +102,7 @@ def _check_entire_notebook(notebook_path: str) -> None:
     print("---- Notebook Quality & Style Check Report ----")
     try:
         report = execute_command(
-            f"ruff check {notebook_path}",
+            f"ruff check '{notebook_path}'",
             "",
         )
         if report:
