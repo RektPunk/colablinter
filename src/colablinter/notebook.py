@@ -1,4 +1,5 @@
 import os
+import unicodedata
 import urllib.parse
 
 import ipykernel
@@ -86,7 +87,12 @@ def _find_notebook_path(filename: str) -> str | None:
     print(
         "[ColabLinter:INFO] Searching file path in Google Drive. (This may take time...)"
     )
+    normalized_filename = unicodedata.normalize("NFC", filename)
     for root, _, files in os.walk(_BASE_PATH):
+        for file in files:
+            normalized_file = unicodedata.normalize("NFC", file)
+            if normalized_filename == normalized_file:
+                return os.path.join(root, file)
         if filename in files:
             return os.path.join(root, filename)
     return
