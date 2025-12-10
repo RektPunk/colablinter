@@ -9,20 +9,20 @@
 
 It integrates the high-speed linter **`ruff`** and import sorter **`isort`** to perform cell-by-cell code quality and formatting checks.
 
-## Magic Commands
+## Magic cell Commands
 
 | Command | Role | Description |
 | :--- | :--- | :--- |
-| **`%%check`** | **Quality Check** | Displays a linting report. |
-| **`%%format`** | **Format, Sort** | Displays a formatting preview (**for copy/paste**) |
+| **`%%cl_check`** | **Quality Check** | Displays a linting report. |
+| **`%%cl_format`** | **Format, Sort** | Displays a formatting preview (**for copy/paste**) |
 
 After executing a magic command, the **original code** of the cell is executed (if applicable to the command).
 
-## Terminal Command
-| Command | Description |
-| :--- | :--- |
-| **`colablinter check`** | Displays a linting report for entire notebook. |
+## Magic line Commands
 
+| Command | Role | Description |
+| :--- | :--- | :--- |
+| **`%cl_check`** | **Quality Check** | Displays a linting report for entire notebook. |
 
 ## Installation
 
@@ -41,9 +41,9 @@ The extension must be explicitly loaded in the notebook session before use.
 
 1. Check Code Quality
 
-    Use `%%check` to see linting reports.
+    Use `%%cl_check` to see linting reports.
     ```python
-    %%check
+    %%cl_check
 
     def invalid_code(x):
         return x + y # 'y' is not defined
@@ -66,9 +66,9 @@ The extension must be explicitly loaded in the notebook session before use.
 
 2. Format code preview
 
-    `%%format` will display the formatted code, but the cell executes the original code.
+    `%%cl_format` will display the formatted code, but the cell executes the original code.
     ```python
-    %%format
+    %%cl_format
     import sys
     import os
     def calculate_long_sum(a,b,c,d,e,f):
@@ -89,7 +89,7 @@ The extension must be explicitly loaded in the notebook session before use.
 
 3. Full notebook check
 
-    Use `colablinter check` command to see linting reports for entire notebook.
+    Use `%cl_check` command to see linting reports for entire notebook.
     ```python
-    !colablinter check
+    %cl_check
     ```
