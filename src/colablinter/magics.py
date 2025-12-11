@@ -3,7 +3,7 @@ import sys
 from IPython.core.interactiveshell import ExecutionInfo
 from IPython.core.magic import Magics, cell_magic, line_magic, magics_class
 
-from .notebook import ColabLinter
+from .drive_mount import RequiredDriveMountColabLinter
 from .utils import execute_command
 
 _FILE_NAME = "notebook_cell.py"
@@ -70,7 +70,7 @@ class ColabLinterMagics(Magics):
 
 
 @magics_class
-class RequireDriveMountMagics(Magics):
+class RequiredDriveMountMagics(Magics):
     _linter_instance = None
 
     @line_magic
@@ -79,21 +79,21 @@ class RequireDriveMountMagics(Magics):
             return
 
         try:
-            RequireDriveMountMagics._linter_instance.check()
+            RequiredDriveMountMagics._linter_instance.check()
         except Exception as e:
             print(f"[ColabLinter:ERROR] %cl_check command failed: {e}", file=sys.stderr)
 
     def __ensure_linter_initialized(self) -> bool:
-        if RequireDriveMountMagics._linter_instance:
+        if RequiredDriveMountMagics._linter_instance:
             return True
 
         try:
-            RequireDriveMountMagics._linter_instance = ColabLinter()
+            RequiredDriveMountMagics._linter_instance = RequiredDriveMountColabLinter()
             return True
         except Exception as e:
             print(
                 f"[ColabLinter:ERROR] Line magic initialization failed: {e}",
                 file=sys.stderr,
             )
-            RequireDriveMountMagics._linter_instance = None
+            RequiredDriveMountMagics._linter_instance = None
             return False
