@@ -16,7 +16,7 @@ It allows developers to lint and format code on a **cell-by-cell** basis or chec
 | Command | Type | Role | Description |
 | :--- | :--- | :--- | :--- |
 | **`%%cl_check`** | Cell Magic | Quality Check | Displays a linting report for the **current cell's code**. |
-| **`%%cl_format`** | Cell Magic | Format Preview | **Formats the current cell's code** and displays the result for manual application (copy/paste). |
+| **`%%cl_format`** | Cell Magic | Format Preview | **Formats the current cell's code**. |
 | **`%cl_check`** | Line Magic | Quality Check | Displays a linting report for the **entire saved notebook** (requires Google Drive mount). |
 
 After executing a magic command, the **original code** of the cell is executed (if applicable to the command).
@@ -64,7 +64,7 @@ The extension must be explicitly loaded in the notebook session before use.
 
 2. Format cell preview (`%%cl_format`)
 
-    `%%cl_format` runs the formatter and displays the corrected code. The cell executes the original code, so you must copy the formatted output and paste it back into the cell to apply the changes.
+    `%%cl_format` runs the formatter and corrects code. The cell executes the original code.
 
     ```python
     %%cl_format
@@ -74,9 +74,8 @@ The extension must be explicitly loaded in the notebook session before use.
         return (a+b+c)*(d+e+f)  # messy
     ```
 
-    Output examples:
+    Replaced code:
     ```python
-    # Formatted Code
     import os
     import sys
     from datetime import datetime

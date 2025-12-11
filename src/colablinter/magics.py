@@ -41,10 +41,7 @@ class LintCellMagics(Magics):
         code_to_print = formatted_code if formatted_code else _formatted_code
 
         if cell.strip() != code_to_print.strip():
-            print("# Formatted Code")
-            print(code_to_print.strip())
-        else:
-            print("[ColabLinter:INFO] Code already formatted. No changes needed.")
+            self.shell.set_next_input(code_to_print, replace=True)
         return
 
     def __execute(self, cell: str) -> None:
