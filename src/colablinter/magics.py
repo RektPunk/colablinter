@@ -32,7 +32,7 @@ class ColabLinterMagics(Magics):
             print("[ColabLinter:INFO] Auto code formatting activated.")
         elif action == "off":
             self.shell.events.unregister("pre_run_cell", self.__format_info)
-            print("[ColabLinter:INFO] Auto code formatting activated.")
+            print("[ColabLinter:INFO] Auto code formatting deactivated.")
         else:
             print(
                 "[ColabLinter:INFO] Usage: %cl_auto_format on or %cl_auto_format off."
@@ -48,6 +48,13 @@ class ColabLinterMagics(Magics):
         print("-------------------------------------------")
 
     def __format(self, cell: str) -> None:
+        stripped_cell = cell.strip()
+        if (
+            stripped_cell.startswith(("%", "!"))
+            and len(stripped_cell.splitlines()) == 1
+        ):
+            return
+
         _formatted_code = execute_command(_FORMAT_COMMAND, input_data=cell)
         if _formatted_code is None:
             print("[ColabLinter:ERROR] Formatting failed.")

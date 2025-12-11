@@ -18,7 +18,8 @@ It allows developers to lint and format code on a **cell-by-cell** basis or chec
 | **`%%cl_check`** | Cell Magic | Quality Check | Displays a linting report for the **current cell's code**. |
 | **`%%cl_format`** | Cell Magic | Format Preview | **Formats the current cell's code**. |
 | **`%cl_check`** | Line Magic | Quality Check | Displays a linting report for the **entire saved notebook** (requires Google Drive mount). |
-| **`%cl_auto_format`** | Line Magic | Auto Format | Activates or deactivates automatic code formatting before every cell execution. |s
+| **`%cl_auto_format`** | Line Magic | Auto Format | Activates or deactivates automatic code formatting before every cell execution. |
+
 After executing a magic command, the **original code** of the cell is executed (if applicable to the command).
 
 ## Installation
