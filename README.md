@@ -18,7 +18,7 @@ It allows developers to lint and format code on a **cell-by-cell** basis or chec
 | **`%%cl_check`** | Cell Magic | Quality Check | Displays a linting report for the **current cell's code**. |
 | **`%%cl_format`** | Cell Magic | Format Preview | **Formats the current cell's code**. |
 | **`%cl_check`** | Line Magic | Quality Check | Displays a linting report for the **entire saved notebook** (requires Google Drive mount). |
-
+| **`%cl_auto_format`** | Line Magic | Auto Format | Activates or deactivates automatic code formatting before every cell execution. |s
 After executing a magic command, the **original code** of the cell is executed (if applicable to the command).
 
 ## Installation
@@ -91,4 +91,12 @@ The extension must be explicitly loaded in the notebook session before use.
 
     ```python
     %cl_check
+    ```
+
+4. Activate/Deactivate Auto Format (`%cl_auto_format`)
+    The `%cl_auto_format` line magic allows you to automatically format code before every code cell is executed.
+
+    To Activate Auto Formatting:
+    ```python
+    %cl_auto_format on # off when you want to deactivate
     ```

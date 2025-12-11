@@ -118,7 +118,7 @@ def _check_entire_notebook(notebook_path: str) -> None:
     print("-------------------------------------------------------------")
 
 
-class ColabLinter:
+class RequiredDriveMountColabLinter:
     __instance = None
     _notebook_filename_cache: str | None = None
     _notebook_path_cache: str | None = None
@@ -129,15 +129,19 @@ class ColabLinter:
         return cls.__instance
 
     def __init__(self):
-        if ColabLinter._notebook_path_cache:
+        if RequiredDriveMountColabLinter._notebook_path_cache:
             return
 
         _colab_drive_mount()
 
-        ColabLinter._notebook_filename_cache = _get_notebook_filename()
+        RequiredDriveMountColabLinter._notebook_filename_cache = (
+            _get_notebook_filename()
+        )
         self.__check_notebook_filename_exists()
 
-        ColabLinter._notebook_path_cache = _find_notebook_path(self.notebook_filename)
+        RequiredDriveMountColabLinter._notebook_path_cache = _find_notebook_path(
+            self.notebook_filename
+        )
         self.__check_notebook_path_exists()
 
     def check(self) -> None:
@@ -145,9 +149,9 @@ class ColabLinter:
 
     @property
     def notebook_filename(self) -> str:
-        if ColabLinter._notebook_filename_cache is None:
+        if RequiredDriveMountColabLinter._notebook_filename_cache is None:
             raise ValueError("Notebook filename has not been initialized.")
-        return ColabLinter._notebook_filename_cache
+        return RequiredDriveMountColabLinter._notebook_filename_cache
 
     def __check_notebook_filename_exists(self) -> None:
         if self.notebook_filename is None:
@@ -160,9 +164,9 @@ class ColabLinter:
 
     @property
     def notebook_path(self) -> str:
-        if ColabLinter._notebook_path_cache is None:
+        if RequiredDriveMountColabLinter._notebook_path_cache is None:
             raise ValueError("Notebook path has not been initialized.")
-        return ColabLinter._notebook_path_cache
+        return RequiredDriveMountColabLinter._notebook_path_cache
 
     def __check_notebook_path_exists(self) -> None:
         if self.notebook_path is None:

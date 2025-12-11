@@ -1,8 +1,9 @@
 import sys
 
+from IPython.core.interactiveshell import ExecutionInfo
 from IPython.core.magic import Magics, cell_magic, line_magic, magics_class
 
-from .notebook import ColabLinter
+from .drive_mount import RequiredDriveMountColabLinter
 from .utils import execute_command
 
 _FILE_NAME = "notebook_cell.py"
@@ -12,7 +13,7 @@ _ISORT_COMMAND = "isort --profile=black -"
 
 
 @magics_class
-class LintCellMagics(Magics):
+class ColabLinterMagics(Magics):
     @cell_magic
     def cl_check(self, line: str, cell: str) -> None:
         self.__check(cell)
@@ -22,6 +23,20 @@ class LintCellMagics(Magics):
     def cl_format(self, line: str, cell: str) -> None:
         self.__format(cell)
         self.__execute(cell)
+
+    @line_magic
+    def cl_auto_format(self, line: str) -> None:
+        action = line.strip().lower()
+        if action == "on":
+            self.shell.events.register("pre_run_cell", self.__format_info)
+            print("[ColabLinter:INFO] Auto code formatting activated.")
+        elif action == "off":
+            self.shell.events.unregister("pre_run_cell", self.__format_info)
+            print("[ColabLinter:INFO] Auto code formatting activated.")
+        else:
+            print(
+                "[ColabLinter:INFO] Usage: %cl_auto_format on or %cl_auto_format off."
+            )
 
     def __check(self, cell: str) -> None:
         print("---- Code Quality & Style Check Report ----")
@@ -50,9 +65,12 @@ class LintCellMagics(Magics):
         except Exception as e:
             print(f"[ColabLinter:ERROR] Code execution failed: {e}")
 
+    def __format_info(self, info: ExecutionInfo) -> None:
+        self.__format(info.raw_cell)
+
 
 @magics_class
-class LintLineMagic(Magics):
+class RequiredDriveMountMagics(Magics):
     _linter_instance = None
 
     @line_magic
@@ -61,21 +79,21 @@ class LintLineMagic(Magics):
             return
 
         try:
-            LintLineMagic._linter_instance.check()
+            RequiredDriveMountMagics._linter_instance.check()
         except Exception as e:
             print(f"[ColabLinter:ERROR] %cl_check command failed: {e}", file=sys.stderr)
 
     def __ensure_linter_initialized(self) -> bool:
-        if LintLineMagic._linter_instance:
+        if RequiredDriveMountMagics._linter_instance:
             return True
 
         try:
-            LintLineMagic._linter_instance = ColabLinter()
+            RequiredDriveMountMagics._linter_instance = RequiredDriveMountColabLinter()
             return True
         except Exception as e:
             print(
                 f"[ColabLinter:ERROR] Line magic initialization failed: {e}",
                 file=sys.stderr,
             )
-            LintLineMagic._linter_instance = None
+            RequiredDriveMountMagics._linter_instance = None
             return False

@@ -1,9 +1,9 @@
 try:
-    from .magics import LintCellMagics, LintLineMagic
+    from .magics import ColabLinterMagics, RequiredDriveMountMagics
 
     def load_ipython_extension(ipython):
-        ipython.register_magics(LintCellMagics)
-        ipython.register_magics(LintLineMagic)
+        ipython.register_magics(ColabLinterMagics)
+        ipython.register_magics(RequiredDriveMountMagics)
         print("[ColabLinter:INFO] cl commands registered.")
 
 except Exception as e:
