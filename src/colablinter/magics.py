@@ -14,10 +14,6 @@ _ISORT_COMMAND = "isort --profile=black -"
 
 @magics_class
 class ColabLinterMagics(Magics):
-    def __init__(self, shell):
-        super().__init__(shell)
-        self._auto_format_active = False
-
     @cell_magic
     def cl_check(self, line: str, cell: str) -> None:
         self.__check(cell)
@@ -25,24 +21,16 @@ class ColabLinterMagics(Magics):
 
     @cell_magic
     def cl_format(self, line: str, cell: str) -> None:
-        if self._auto_format_active:
-            print(
-                "[ColabLinter:INFO] %%cl_format skipped."
-                "Auto code formatting is currently ON (%cl_auto_format off to disable)."
-            )
-            self.__execute(cell)  # 포맷만 건너뛰고 실행은 유지
-            return
+        self.__format(cell)
         self.__execute(cell)
 
     @line_magic
     def cl_auto_format(self, line: str) -> None:
         action = line.strip().lower()
         if action == "on":
-            self._auto_format_active = True
             self.shell.events.register("pre_run_cell", self.__format_info)
             print("[ColabLinter:INFO] Auto code formatting activated.")
         elif action == "off":
-            self._auto_format_active = False
             self.shell.events.unregister("pre_run_cell", self.__format_info)
             print("[ColabLinter:INFO] Auto code formatting deactivated.")
         else:
@@ -85,6 +73,13 @@ class ColabLinterMagics(Magics):
             print(f"[ColabLinter:ERROR] Code execution failed: {e}")
 
     def __format_info(self, info: ExecutionInfo) -> None:
+        stripped_cell = info.raw_cell.strip()
+        if stripped_cell.startswith(("%", "!")):
+            print(
+                "[ColabLinter:INFO] %cl_auto_format skipped."
+                "Auto code formatting is currently ON (%cl_auto_format off to disable)."
+            )
+            return
         self.__format(info.raw_cell)
 
 
