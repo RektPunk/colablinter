@@ -7,10 +7,8 @@ from colablinter.logger import logger
 
 
 def is_invalid_cell(cell: str) -> bool:
-    for line in cell.splitlines():
-        stripped_line = line.strip()
-        if stripped_line.startswith(("%", "!")):
-            return True
+    if cell.startswith(("%", "!")):
+        return True
     return False
 
 
