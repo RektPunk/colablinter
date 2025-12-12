@@ -48,11 +48,11 @@ class ColabLinterMagics(Magics):
     def cl_autofix(self, line: str) -> None:
         action = line.strip().lower()
         if action == "on":
-            self.shell.events.register("pre_run_cell", self.__auto)
+            self.shell.events.register("pre_run_cell", self.__autofix)
             logger.info("Auto-fix activated for pre-run cells.")
         elif action == "off":
             try:
-                self.shell.events.unregister("pre_run_cell", self.__auto)
+                self.shell.events.unregister("pre_run_cell", self.__autofix)
             except Exception:
                 pass
             logger.info("Auto-fix deactivated.")
@@ -65,7 +65,7 @@ class ColabLinterMagics(Magics):
         except Exception as e:
             logger.exception(f"Code execution failed: {e}")
 
-    def __auto(self, info: ExecutionInfo) -> None:
+    def __autofix(self, info: ExecutionInfo) -> None:
         stripped_cell = info.raw_cell.strip()
         if is_invalid_cell(stripped_cell):
             logger.info("Autofix is skipped for cell with magic or terminal.")
