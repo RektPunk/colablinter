@@ -21,8 +21,8 @@ def _colab_drive_mount() -> None:
     except ImportError as e:
         raise ImportError(
             "This command requires the 'google.colab' environment.\n"
-            "The `%cl_report` must be run **inside a Google Colab notebook**.\n"
-            "If you are in Colab, ensure you haven't renamed the `google.colab`."
+            "The `colablinter` must be run **inside a Google Colab notebook** to access the kernel and Drive.\n"
+            "If you are already in Colab, ensure you haven't renamed the `google.colab` package or run the command outside a code cell."
         ) from e
 
 
@@ -85,9 +85,7 @@ def _get_notebook_filename() -> str | None:
 
 
 def _find_notebook_path(filename: str) -> str | None:
-    logger.info(
-        "[ColabLinter:INFO] Searching file path in Google Drive. (This may take time...)"
-    )
+    logger.info("Searching file path in Google Drive. (This may take time...)")
     normalized_filename = unicodedata.normalize("NFC", filename)
     for root, _, files in os.walk(_BASE_PATH):
         for file in files:
