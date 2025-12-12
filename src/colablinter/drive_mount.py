@@ -100,18 +100,18 @@ def _find_notebook_path(filename: str) -> str | None:
 
 
 def _check_entire_notebook(notebook_path: str) -> None:
-    print("---- Notebook Quality & Style Check Report ----")
+    logger.info("---- Notebook Quality & Style Check Report ----")
     try:
         report = notebook_report(notebook_path)
         if report:
-            print(report)
+            logger.info(report)
         else:
             logger.info("No issues found in the entire notebook. Code is clean.")
     except FileNotFoundError as e:
         raise FileNotFoundError(f"File not founded: {notebook_path}.") from e
     except Exception as e:
         raise RuntimeError(f"%cl_check failed: {e}") from e
-    print("-------------------------------------------------------------")
+    logger.info("-------------------------------------------------------------")
 
 
 class RequiredDriveMountColabLinter:
