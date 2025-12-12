@@ -5,7 +5,8 @@ import urllib.parse
 import ipykernel
 import requests
 
-from .command import execute_command, notebook_report
+from colablinter.command import execute_command, notebook_report
+from colablinter.logger import logger
 
 _BASE_PATH = "/content/drive"
 
@@ -15,7 +16,7 @@ def _colab_drive_mount() -> None:
         from google.colab import drive
 
         if not os.path.exists(_BASE_PATH):
-            print("[ColabLinter:INFO] Mounting Google Drive required.")
+            logger.info("Mounting Google Drive required.")
             drive.mount(_BASE_PATH)
     except ImportError as e:
         raise ImportError(
@@ -26,7 +27,7 @@ def _colab_drive_mount() -> None:
 
 
 def _get_notebook_filename() -> str | None:
-    print("[ColabLinter:INFO] Searching matched filename in kernel and session.")
+    logger.info("Searching matched filename in kernel and session.")
     try:
         connection_file = ipykernel.get_connection_file()
         kernel_id = (
@@ -36,7 +37,7 @@ def _get_notebook_filename() -> str | None:
         )
     except Exception as e:
         kernel_id = None
-        print(f"[ColabLinter:WARNING] Failed to retrieve kernel ID: {e}")
+        logger.warning(f"Failed to retrieve kernel ID: {e}")
         pass
 
     try:
@@ -60,9 +61,7 @@ def _get_notebook_filename() -> str | None:
         if kernel_id:
             for session in sessions:
                 if session.get("kernel", {}).get("id") == kernel_id:
-                    print(
-                        f"[ColabLinter:INFO] Kernel ID ({kernel_id}) matched with session."
-                    )
+                    logger.info(f"Kernel ID ({kernel_id}) matched with session.")
                     encoded_filename = session.get("name")
                     return urllib.parse.unquote(encoded_filename)
 
@@ -86,7 +85,7 @@ def _get_notebook_filename() -> str | None:
 
 
 def _find_notebook_path(filename: str) -> str | None:
-    print(
+    logger.info(
         "[ColabLinter:INFO] Searching file path in Google Drive. (This may take time...)"
     )
     normalized_filename = unicodedata.normalize("NFC", filename)
@@ -107,9 +106,7 @@ def _check_entire_notebook(notebook_path: str) -> None:
         if report:
             print(report)
         else:
-            print(
-                "[ColabLinter:INFO] No issues found in the entire notebook. Code is clean."
-            )
+            logger.info("No issues found in the entire notebook. Code is clean.")
     except FileNotFoundError as e:
         raise FileNotFoundError(f"File not founded: {notebook_path}.") from e
     except Exception as e:
@@ -157,9 +154,7 @@ class RequiredDriveMountColabLinter:
             raise ValueError(
                 "Could not retrieve current filename. Check if the file is saved."
             )
-        print(
-            f"[ColabLinter:INFO] Notebook filename detected: {self.notebook_filename}"
-        )
+        logger.info(f"Notebook filename detected: {self.notebook_filename}")
 
     @property
     def notebook_path(self) -> str:
@@ -172,4 +167,4 @@ class RequiredDriveMountColabLinter:
             raise ValueError(
                 f"File not found in Google Drive. Ensure the notebook is in '{_BASE_PATH}'."
             )
-        print(f"[ColabLinter:INFO] File path found: {self.notebook_path}")
+        logger.info(f"File path found: {self.notebook_path}")

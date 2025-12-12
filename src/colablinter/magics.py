@@ -1,10 +1,9 @@
-import sys
-
 from IPython.core.interactiveshell import ExecutionInfo
 from IPython.core.magic import Magics, cell_magic, line_magic, magics_class
 
-from .command import cell_check, cell_format, cell_report
-from .drive_mount import RequiredDriveMountColabLinter
+from colablinter.command import cell_check, cell_format, cell_report
+from colablinter.drive_mount import RequiredDriveMountColabLinter
+from colablinter.logger import logger
 
 
 def is_invalid_cell(cell: str) -> bool:
@@ -27,15 +26,15 @@ class ColabLinterMagics(Magics):
     def cl_fix(self, line: str, cell: str) -> None:
         stripped_cell = cell.strip()
         if is_invalid_cell(stripped_cell):
-            print(
-                "[ColabLinter:INFO] %%cl_fix is ignored for cell with magic or terminal command."
+            logger.info(
+                "Fix skipped. Cell starts with magic (%, %%) or shell (!...) command."
             )
             self.__execute(stripped_cell)
             return None
 
         fixed_code = cell_check(stripped_cell)
         if fixed_code is None:
-            print("[ColabLinter:ERROR] Check failed.")
+            logger.error("Linter check failed. Code not modified.")
             self.__execute(stripped_cell)
             return None
 
@@ -44,7 +43,7 @@ class ColabLinterMagics(Magics):
             self.shell.set_next_input(formatted_code, replace=True)
             self.__execute(formatted_code)
         else:
-            print("[ColabLinter:ERROR] Format failed.")
+            logger.error("Formatter failed. Check-fixed code executed.")
             self.__execute(fixed_code)
 
     @line_magic
@@ -52,39 +51,38 @@ class ColabLinterMagics(Magics):
         action = line.strip().lower()
         if action == "on":
             self.shell.events.register("pre_run_cell", self.__auto)
-            print("[ColabLinter:INFO] Auto code formatting activated.")
+            logger.info("Auto-fix activated for pre-run cells.")
         elif action == "off":
             try:
                 self.shell.events.unregister("pre_run_cell", self.__auto)
             except Exception:
                 pass
-            print("[ColabLinter:INFO] Auto code formatting deactivated.")
+            logger.info("Auto-fix deactivated.")
         else:
-            print("[ColabLinter:INFO] Usage: %cl_autofix on or %cl_autofix off.")
+            logger.info("Usage: %%cl_autofix on or %%cl_autofix off.")
 
     def __execute(self, cell: str) -> None:
         try:
             self.shell.run_cell(cell, silent=False, store_history=True)
         except Exception as e:
-            print(f"[ColabLinter:ERROR] Code execution failed: {e}")
+            logger.exception(f"Code execution failed: {e}")
 
     def __auto(self, info: ExecutionInfo) -> None:
         stripped_cell = info.raw_cell.strip()
         if is_invalid_cell(stripped_cell):
-            print(
-                "[ColabLinter:INFO] Autofix is ignored with cell with magic or terminal."
-            )
+            logger.info("Autofix is skipped for cell with magic or terminal.")
             return None
 
         fixed_code = cell_check(stripped_cell)
         if fixed_code is None:
-            print("[ColabLinter:ERROR] Check failed.")
+            logger.error("Linter check failed during auto-fix.")
             return None
 
         formatted_code = cell_format(fixed_code)
         if formatted_code is None:
-            print("[ColabLinter:ERROR] Format failed.")
+            logger.error("Formatter failed during auto-fix.")
             return None
+
         self.shell.set_next_input(formatted_code, replace=True)
 
 
@@ -100,9 +98,7 @@ class RequiredDriveMountMagics(Magics):
         try:
             RequiredDriveMountMagics._linter_instance.check()
         except Exception as e:
-            print(
-                f"[ColabLinter:ERROR] %cl_report command failed: {e}", file=sys.stderr
-            )
+            logger.exception(f"%%cl_report command failed during execution: {e}")
 
     def __ensure_linter_initialized(self) -> bool:
         if RequiredDriveMountMagics._linter_instance:
@@ -112,9 +108,6 @@ class RequiredDriveMountMagics(Magics):
             RequiredDriveMountMagics._linter_instance = RequiredDriveMountColabLinter()
             return True
         except Exception as e:
-            print(
-                f"[ColabLinter:ERROR] Required drive mount magic initialization failed: {e}",
-                file=sys.stderr,
-            )
+            logger.exception(f"Required drive mount magic initialization failed.: {e}")
             RequiredDriveMountMagics._linter_instance = None
             return False

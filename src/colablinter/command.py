@@ -1,11 +1,15 @@
 import subprocess
-import sys
+
+from colablinter.logger import logger
 
 _FILE_NAME = "notebook_cell.py"
 _RULESET = "F,E,I,B"
 _CELL_REPORT_COMMAND = f"ruff check --select {_RULESET} --ignore F401 --line-length 100 --stdin-filename={_FILE_NAME}"
 _CELL_CHECK_COMMAND = f"{_CELL_REPORT_COMMAND} --fix"
 _CELL_FORMAT_COMMAND = f"ruff format --stdin-filename={_FILE_NAME}"
+_NOTEBOOK_REPORT_COMMAND = (
+    f"ruff check --select {_RULESET} --line-length 100 '{{notebook_path}}'"
+)
 
 
 def execute_command(command: str, input_data: str) -> str | None:
@@ -22,29 +26,23 @@ def execute_command(command: str, input_data: str) -> str | None:
         if result.stderr:
             stderr_content = result.stderr.strip()
             if "Found" in stderr_content:
-                print(
-                    f"[ColabLinter: Linter Warning/Error]: {stderr_content}",
-                    file=sys.stderr,
-                )
+                logger.warning(f"Linter: {stderr_content}")
             elif "All checks passed" in stderr_content:
                 pass
             else:
-                print(
-                    f"[ColabLinter: Subprocess Warning/Error]: {stderr_content}",
-                    file=sys.stderr,
-                )
+                logger.error(f"Subprocess: {stderr_content}")
         return result.stdout.strip()
     except Exception as e:
-        print(f"[ColabLinter:ERROR] Error running command: {e}")
+        logger.exception(f"Error running command: {e}")
         return None
 
 
 def cell_report(cell: str) -> None:
     report = execute_command(_CELL_REPORT_COMMAND, input_data=cell)
     if report:
-        print(f"[ColabLiter:INFO] {report}")
+        logger.info(report)
     else:
-        print("[ColabLinter:INFO] No issues found. Code is clean.")
+        logger.info("No issues found. Code is clean.")
 
 
 def cell_check(cell: str) -> str | None:
@@ -63,6 +61,6 @@ def cell_format(cell: str) -> str | None:
 
 def notebook_report(notebook_path: str) -> None:
     return execute_command(
-        f"ruff check --select F,E,I,B '{notebook_path}'",
+        _NOTEBOOK_REPORT_COMMAND.format(notebook_path=notebook_path),
         "",
     )
