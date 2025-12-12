@@ -27,15 +27,17 @@ class ColabLinterMagics(Magics):
     def cl_fix(self, line: str, cell: str) -> None:
         stripped_cell = cell.strip()
         if is_invalid_cell(stripped_cell):
-            print("[ColabLinter:INFO] Cell with magic or terminal command is igonored.")
+            print(
+                "[ColabLinter:INFO] %%cl_fix is ignored for cell with magic or terminal command."
+            )
             self.__execute(stripped_cell)
-            return
+            return None
 
         fixed_code = cell_check(stripped_cell)
         if fixed_code is None:
             print("[ColabLinter:ERROR] Check failed.")
             self.__execute(stripped_cell)
-            return
+            return None
 
         formatted_code = cell_format(fixed_code)
         if formatted_code:
@@ -69,18 +71,20 @@ class ColabLinterMagics(Magics):
     def __auto(self, info: ExecutionInfo) -> None:
         stripped_cell = info.raw_cell.strip()
         if is_invalid_cell(stripped_cell):
-            print("[ColabLinter:INFO] Cell with magic or terminal command is igonored.")
-            return
+            print(
+                "[ColabLinter:INFO] Autofix is ignored with cell with magic or terminal."
+            )
+            return None
 
         fixed_code = cell_check(stripped_cell)
         if fixed_code is None:
             print("[ColabLinter:ERROR] Check failed.")
-            return
+            return None
 
         formatted_code = cell_format(fixed_code)
         if formatted_code is None:
             print("[ColabLinter:ERROR] Format failed.")
-            return
+            return None
         self.shell.set_next_input(formatted_code, replace=True)
 
 
@@ -91,12 +95,14 @@ class RequiredDriveMountMagics(Magics):
     @line_magic
     def cl_report(self, line):
         if not self.__ensure_linter_initialized():
-            return
+            return None
 
         try:
             RequiredDriveMountMagics._linter_instance.check()
         except Exception as e:
-            print(f"[ColabLinter:ERROR] %cl_check command failed: {e}", file=sys.stderr)
+            print(
+                f"[ColabLinter:ERROR] %cl_report command failed: {e}", file=sys.stderr
+            )
 
     def __ensure_linter_initialized(self) -> bool:
         if RequiredDriveMountMagics._linter_instance:
@@ -107,7 +113,7 @@ class RequiredDriveMountMagics(Magics):
             return True
         except Exception as e:
             print(
-                f"[ColabLinter:ERROR] Line magic initialization failed: {e}",
+                f"[ColabLinter:ERROR] Required drive mount magic initialization failed: {e}",
                 file=sys.stderr,
             )
             RequiredDriveMountMagics._linter_instance = None

@@ -61,7 +61,7 @@ def _get_notebook_filename() -> str | None:
             for session in sessions:
                 if session.get("kernel", {}).get("id") == kernel_id:
                     print(
-                        f"[ColabLinter:INFO] Kernel ({kernel_id}) matched with session."
+                        f"[ColabLinter:INFO] Kernel ID ({kernel_id}) matched with session."
                     )
                     encoded_filename = session.get("name")
                     return urllib.parse.unquote(encoded_filename)
@@ -87,8 +87,7 @@ def _get_notebook_filename() -> str | None:
 
 def _find_notebook_path(filename: str) -> str | None:
     print(
-        "[ColabLinter:INFO] Searching file path in Google Drive. "
-        "(This may take time...)"
+        "[ColabLinter:INFO] Searching file path in Google Drive. (This may take time...)"
     )
     normalized_filename = unicodedata.normalize("NFC", filename)
     for root, _, files in os.walk(_BASE_PATH):
@@ -109,8 +108,7 @@ def _check_entire_notebook(notebook_path: str) -> None:
             print(report)
         else:
             print(
-                "[ColabLinter:INFO] No issues found in the entire notebook. "
-                "Code is clean."
+                "[ColabLinter:INFO] No issues found in the entire notebook. Code is clean."
             )
     except FileNotFoundError as e:
         raise FileNotFoundError(f"File not founded: {notebook_path}.") from e
@@ -129,9 +127,9 @@ class RequiredDriveMountColabLinter:
             cls.__instance = super().__new__(cls)
         return cls.__instance
 
-    def __init__(self):
+    def __init__(self) -> None:
         if RequiredDriveMountColabLinter._notebook_path_cache:
-            return
+            return None
 
         _colab_drive_mount()
 
@@ -172,7 +170,6 @@ class RequiredDriveMountColabLinter:
     def __check_notebook_path_exists(self) -> None:
         if self.notebook_path is None:
             raise ValueError(
-                "File not found in Google Drive. "
-                "Ensure the notebook is in '{_BASE_PATH}'."
+                f"File not found in Google Drive. Ensure the notebook is in '{_BASE_PATH}'."
             )
         print(f"[ColabLinter:INFO] File path found: {self.notebook_path}")
