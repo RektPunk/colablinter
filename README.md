@@ -7,7 +7,7 @@
 
 **`colablinter`** is an **IPython magic command extension** designed specifically for Jupyter and Google Colab notebooks.
 
-It integrates the high-speed linter **`ruff`** to automate code quality checks and enforce standards directly within Jupyter/Colab cells.
+It integrates the high-speed linter **`ruff`** to perform code quality checks and enforce standards directly within Jupyter/Colab cells.
 
 It allows developers to lint and format code on a **cell-by-cell** basis or check the **entire notebook** with simple commands.
 
