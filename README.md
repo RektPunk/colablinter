@@ -43,20 +43,31 @@ The extension must be explicitly loaded in the notebook session before use.
     `%%cl_fix` corrects code and runs the formatter. The cell executes the fixed code.
     ```python
     %%cl_fix
-    import sys
-    import os
-    def calculate_long_sum(a,b,c,d,e,f):
-        return {"a":a,"b":b, "sum":(a+b+c)*(d+e+f)}
+    import math, sys;
+
+    class Example(   object ):
+        def __init__    ( self, bar ):
+        if bar : bar+=1;  bar=bar* bar   ; return bar
+        else:
+                        some_string = "foo"
+                        return (sys.path, some_string)
     ```
 
     Fixed Cell:
     ```python
-    import os
+    import math
     import sys
 
 
-    def calculate_long_sum(a, b, c, d, e, f):
-        return {"a": a, "b": b, "sum": (a + b + c) * (d + e + f)}
+    class Example(object):
+        def __init__(self, bar):
+            if bar:
+                bar += 1
+                bar = bar * bar
+                return bar
+            else:
+                some_string = "foo"
+                return (sys.path, some_string)
     ```
 
 
