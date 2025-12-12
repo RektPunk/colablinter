@@ -17,12 +17,12 @@ def _colab_drive_mount() -> None:
         if not os.path.exists(_BASE_PATH):
             print("[ColabLinter:INFO] Mounting Google Drive required.")
             drive.mount(_BASE_PATH)
-    except ImportError:
+    except ImportError as e:
         raise ImportError(
             "This command requires the 'google.colab' environment.\n"
-            "The `colablinter` must be run **inside a Google Colab notebook** to access the kernel and Drive.\n"
-            "If you are already in Colab, ensure you haven't renamed the `google.colab` package or run the command outside a code cell."
-        )
+            "The `%cl_report` must be run **inside a Google Colab notebook**.\n"
+            "If you are in Colab, ensure you haven't renamed the `google.colab`."
+        ) from e
 
 
 def _get_notebook_filename() -> str | None:
@@ -61,7 +61,7 @@ def _get_notebook_filename() -> str | None:
             for session in sessions:
                 if session.get("kernel", {}).get("id") == kernel_id:
                     print(
-                        f"[ColabLinter:INFO] Kernel ID ({kernel_id}) matched with session."
+                        f"[ColabLinter:INFO] Kernel ({kernel_id}) matched with session."
                     )
                     encoded_filename = session.get("name")
                     return urllib.parse.unquote(encoded_filename)
@@ -69,23 +69,26 @@ def _get_notebook_filename() -> str | None:
         encoded_filename = sessions[0].get("name")
         if encoded_filename:
             return urllib.parse.unquote(encoded_filename)
-        return
+        return None
 
-    except requests.exceptions.Timeout:
-        raise requests.exceptions.Timeout(f"API request timed out: {api_url}")
+    except requests.exceptions.Timeout as e:
+        raise requests.exceptions.Timeout(f"API request timed out: {api_url}") from e
     except requests.exceptions.HTTPError as e:
         raise requests.exceptions.HTTPError(
             f"API HTTP Error {e.response.status_code}: {e.response.reason}"
-        )
+        ) from e
     except requests.exceptions.RequestException as e:
-        raise requests.exceptions.RequestException(f"Failed to connect to API: {e}")
+        raise requests.exceptions.RequestException(
+            f"Failed to connect to API: {e}"
+        ) from e
     except Exception:
-        return
+        return None
 
 
 def _find_notebook_path(filename: str) -> str | None:
     print(
-        "[ColabLinter:INFO] Searching file path in Google Drive. (This may take time...)"
+        "[ColabLinter:INFO] Searching file path in Google Drive. "
+        "(This may take time...)"
     )
     normalized_filename = unicodedata.normalize("NFC", filename)
     for root, _, files in os.walk(_BASE_PATH):
@@ -95,7 +98,7 @@ def _find_notebook_path(filename: str) -> str | None:
                 return os.path.join(root, file)
         if filename in files:
             return os.path.join(root, filename)
-    return
+    return None
 
 
 def _check_entire_notebook(notebook_path: str) -> None:
@@ -106,12 +109,13 @@ def _check_entire_notebook(notebook_path: str) -> None:
             print(report)
         else:
             print(
-                "[ColabLinter:INFO] No issues found in the entire notebook. Code is clean."
+                "[ColabLinter:INFO] No issues found in the entire notebook. "
+                "Code is clean."
             )
-    except FileNotFoundError:
-        raise FileNotFoundError(f"File not founded: {notebook_path}.")
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"File not founded: {notebook_path}.") from e
     except Exception as e:
-        raise RuntimeError(f"%cl_check failed: {e}")
+        raise RuntimeError(f"%cl_check failed: {e}") from e
     print("-------------------------------------------------------------")
 
 
@@ -168,6 +172,7 @@ class RequiredDriveMountColabLinter:
     def __check_notebook_path_exists(self) -> None:
         if self.notebook_path is None:
             raise ValueError(
-                f"File not found in Google Drive. Ensure the notebook is in '{_BASE_PATH}'."
+                "File not found in Google Drive. "
+                "Ensure the notebook is in '{_BASE_PATH}'."
             )
         print(f"[ColabLinter:INFO] File path found: {self.notebook_path}")

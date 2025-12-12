@@ -46,18 +46,19 @@ class ColabLinterMagics(Magics):
             self.__execute(fixed_code)
 
     @line_magic
-    def cl_auto(self, line: str) -> None:
+    def cl_autofix(self, line: str) -> None:
         action = line.strip().lower()
         if action == "on":
             self.shell.events.register("pre_run_cell", self.__auto)
             print("[ColabLinter:INFO] Auto code formatting activated.")
         elif action == "off":
-            if self.__auto in self.shell.events.callbacks["pre_run_cell"]:
+            try:
                 self.shell.events.unregister("pre_run_cell", self.__auto)
-            self.shell.events.unregister("pre_run_cell", self.__auto)
+            except Exception:
+                pass
             print("[ColabLinter:INFO] Auto code formatting deactivated.")
         else:
-            print("[ColabLinter:INFO] Usage: %cl_auto on or %cl_auto off.")
+            print("[ColabLinter:INFO] Usage: %cl_autofix on or %cl_autofix off.")
 
     def __execute(self, cell: str) -> None:
         try:
