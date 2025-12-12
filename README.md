@@ -15,10 +15,11 @@ It allows developers to lint and format code on a **cell-by-cell** basis or chec
 
 | Command | Type | Role | Description |
 | :--- | :--- | :--- | :--- |
-| **`%%cl_check`** | Cell Magic | Quality Check | Displays a linting report for the **current cell's code**. |
-| **`%%cl_format`** | Cell Magic | Format Preview | **Formats the current cell's code**. |
-| **`%cl_check`** | Line Magic | Quality Check | Displays a linting report for the **entire saved notebook** (requires Google Drive mount). |
-| **`%cl_auto_format`** | Line Magic | Auto Format | Activates or deactivates automatic code formatting before every cell execution. |
+| **`%%cl_fix`** | Cell Magic | Quality Check | **Fixes and Formats the current cell's code**. |
+| **`%%cl_report`** | Cell Magic | Quality Report | Displays a linting report for the current cell. |
+| **`%cl_autofix`** | Line Magic | Auto Format | Activates or deactivates automatic code fixing and formatting before every cell execution. |
+| **`%cl_report`** | Line Magic | Quality Check | Displays a linting report for the **entire saved notebook** (requires Google Drive mount). |
+
 
 After executing a magic command, the **original code** of the cell is executed (if applicable to the command).
 
@@ -37,9 +38,35 @@ The extension must be explicitly loaded in the notebook session before use.
 %load_ext colablinter
 ```
 
-1. Check cell quality (`%%cl_check`)
 
-    Use `%%cl_check` to see linting reports for the code below the command.
+1. Fix and Format cell (`%%cl_fix`)
+
+    `%%cl_fix` corrects code and runs the formatter. The cell executes the original code.
+
+    ```python
+    %%cl_format
+    import sys
+    import os
+    def calculate_long_sum(a,b,c,d,e,f):
+        return (a+b+c)*(d+e+f)  # messy
+    ```
+
+    Replaced code:
+    ```python
+    import os
+    import sys
+    from datetime import datetime
+
+
+    def calculate_long_sum(a, b, c, d, e, f):
+        return (a + b + c) * (d + e + f)  # messy
+    ```
+
+
+
+2. Check cell quality (`%%cl_report`)
+
+    Use `%%cl_report` to see linting reports for the code below the command.
     ```python
     %%cl_check
 
@@ -63,41 +90,18 @@ The extension must be explicitly loaded in the notebook session before use.
     ```
     Note: After the report is displayed, the code in the cell executes as normal. If errors exist (like F821), execution will fail.
 
-2. Format cell preview (`%%cl_format`)
+3. Check entire notebook (`%cl_report`)
 
-    `%%cl_format` runs the formatter and corrects code. The cell executes the original code.
-
-    ```python
-    %%cl_format
-    import sys
-    import os
-    def calculate_long_sum(a,b,c,d,e,f):
-        return (a+b+c)*(d+e+f)  # messy
-    ```
-
-    Replaced code:
-    ```python
-    import os
-    import sys
-    from datetime import datetime
-
-
-    def calculate_long_sum(a, b, c, d, e, f):
-        return (a + b + c) * (d + e + f)  # messy
-    ```
-
-3. Check entire notebook (`%cl_check`)
-
-    Use line magic `%cl_check` to check across the entire saved notebook file (requires the notebook to be saved to Google Drive and mounted).
+    Use line magic `%cl_report` to check across the entire saved notebook file (requires the notebook to be saved to Google Drive and mounted).
 
     ```python
-    %cl_check
+    %cl_report
     ```
 
-4. Activate/Deactivate Auto Format (`%cl_auto_format`)
-    The `%cl_auto_format` line magic allows you to automatically format code before every code cell is executed.
+4. Activate/Deactivate Auto Format (`%cl_autofix`)
+    The `%cl_autofix` line magic allows you to automatically format code before every code cell is executed.
 
     To Activate Auto Formatting:
     ```python
-    %cl_auto_format on # off when you want to deactivate
+    %cl_autofix on # off when you want to deactivate
     ```

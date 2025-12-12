@@ -1,86 +1,87 @@
-import sys
-
 from IPython.core.interactiveshell import ExecutionInfo
 from IPython.core.magic import Magics, cell_magic, line_magic, magics_class
 
-from .drive_mount import RequiredDriveMountColabLinter
-from .utils import execute_command
+from colablinter.command import cell_check, cell_format, cell_report
+from colablinter.drive_mount import RequiredDriveMountColabLinter
+from colablinter.logger import logger
 
-_FILE_NAME = "notebook_cell.py"
-_CHECK_COMMAND = f"ruff check --stdin-filename={_FILE_NAME}"
-_FORMAT_COMMAND = f"ruff format --stdin-filename={_FILE_NAME}"
-_ISORT_COMMAND = "isort --profile=black -"
+
+def is_invalid_cell(cell: str) -> bool:
+    if cell.startswith(("%", "!")):
+        return True
+    return False
 
 
 @magics_class
 class ColabLinterMagics(Magics):
     @cell_magic
-    def cl_check(self, line: str, cell: str) -> None:
-        self.__check(cell)
-        self.__execute(cell)
+    def cl_report(self, line: str, cell: str) -> None:
+        stripped_cell = cell.strip()
+        cell_report(stripped_cell)
+        self.__execute(stripped_cell)
 
     @cell_magic
-    def cl_format(self, line: str, cell: str) -> None:
-        self.__format(cell)
-        self.__execute(cell)
+    def cl_fix(self, line: str, cell: str) -> None:
+        stripped_cell = cell.strip()
+        if is_invalid_cell(stripped_cell):
+            logger.info(
+                "Fix skipped. Cell starts with magic (%, %%) or shell (!...) command."
+            )
+            self.__execute(stripped_cell)
+            return None
+
+        fixed_code = cell_check(stripped_cell)
+        if fixed_code is None:
+            logger.error("Linter check failed. Code not modified.")
+            self.__execute(stripped_cell)
+            return None
+
+        formatted_code = cell_format(fixed_code)
+        if formatted_code:
+            self.shell.set_next_input(formatted_code, replace=True)
+            self.__execute(formatted_code)
+        else:
+            logger.error("Formatter failed. Check-fixed code executed.")
+            self.__execute(fixed_code)
 
     @line_magic
-    def cl_auto_format(self, line: str) -> None:
+    def cl_autofix(self, line: str) -> None:
         action = line.strip().lower()
         if action == "on":
-            self.shell.events.register("pre_run_cell", self.__format_info)
-            print("[ColabLinter:INFO] Auto code formatting activated.")
+            self.shell.events.register("pre_run_cell", self.__autofix)
+            logger.info("Auto-fix activated for pre-run cells.")
         elif action == "off":
-            self.shell.events.unregister("pre_run_cell", self.__format_info)
-            print("[ColabLinter:INFO] Auto code formatting deactivated.")
+            try:
+                self.shell.events.unregister("pre_run_cell", self.__autofix)
+            except Exception:
+                pass
+            logger.info("Auto-fix deactivated.")
         else:
-            print(
-                "[ColabLinter:INFO] Usage: %cl_auto_format on or %cl_auto_format off."
-            )
-
-    def __check(self, cell: str) -> None:
-        print("---- Code Quality & Style Check Report ----")
-        report = execute_command(_CHECK_COMMAND, input_data=cell)
-        if report:
-            print(report)
-        else:
-            print("[ColabLinter:INFO] No issues found. Code is clean.")
-        print("-------------------------------------------")
-
-    def __format(self, cell: str) -> None:
-        stripped_cell = cell.strip()
-        if (
-            stripped_cell.startswith(("%", "!"))
-            and len(stripped_cell.splitlines()) == 1
-        ):
-            return
-
-        _formatted_code = execute_command(_FORMAT_COMMAND, input_data=cell)
-        if _formatted_code is None:
-            print("[ColabLinter:ERROR] Formatting failed.")
-            return
-        formatted_code = execute_command(_ISORT_COMMAND, input_data=_formatted_code)
-        code_to_print = formatted_code if formatted_code else _formatted_code
-
-        if cell.strip() != code_to_print.strip():
-            self.shell.set_next_input(code_to_print, replace=True)
-        return
+            logger.info("Usage: %%cl_autofix on or %%cl_autofix off.")
 
     def __execute(self, cell: str) -> None:
         try:
             self.shell.run_cell(cell, silent=False, store_history=True)
         except Exception as e:
-            print(f"[ColabLinter:ERROR] Code execution failed: {e}")
+            logger.exception(f"Code execution failed: {e}")
 
-    def __format_info(self, info: ExecutionInfo) -> None:
+    def __autofix(self, info: ExecutionInfo) -> None:
         stripped_cell = info.raw_cell.strip()
-        if stripped_cell.startswith(("%", "!")):
-            print(
-                "[ColabLinter:INFO] %cl_auto_format skipped."
-                "Auto code formatting is currently ON (%cl_auto_format off to disable)."
-            )
-            return
-        self.__format(info.raw_cell)
+        if is_invalid_cell(stripped_cell):
+            logger.info("Autofix is skipped for cell with magic or terminal.")
+            return None
+
+        fixed_code = cell_check(stripped_cell)
+        if fixed_code is None:
+            logger.error("Linter check failed during auto-fix.")
+            return None
+
+        formatted_code = cell_format(fixed_code)
+        if formatted_code is None:
+            logger.error("Formatter failed during auto-fix.")
+            return None
+
+        self.shell.set_next_input(formatted_code, replace=True)
 
 
 @magics_class
@@ -88,14 +89,14 @@ class RequiredDriveMountMagics(Magics):
     _linter_instance = None
 
     @line_magic
-    def cl_check(self, line):
+    def cl_report(self, line):
         if not self.__ensure_linter_initialized():
-            return
+            return None
 
         try:
             RequiredDriveMountMagics._linter_instance.check()
         except Exception as e:
-            print(f"[ColabLinter:ERROR] %cl_check command failed: {e}", file=sys.stderr)
+            logger.exception(f"%%cl_report command failed during execution: {e}")
 
     def __ensure_linter_initialized(self) -> bool:
         if RequiredDriveMountMagics._linter_instance:
@@ -105,9 +106,6 @@ class RequiredDriveMountMagics(Magics):
             RequiredDriveMountMagics._linter_instance = RequiredDriveMountColabLinter()
             return True
         except Exception as e:
-            print(
-                f"[ColabLinter:ERROR] Line magic initialization failed: {e}",
-                file=sys.stderr,
-            )
+            logger.exception(f"Required drive mount magic initialization failed.: {e}")
             RequiredDriveMountMagics._linter_instance = None
             return False
