@@ -5,7 +5,7 @@ import urllib.parse
 import ipykernel
 import requests
 
-from .utils import execute_command
+from .command import execute_command, notebook_report
 
 _BASE_PATH = "/content/drive"
 
@@ -101,10 +101,7 @@ def _find_notebook_path(filename: str) -> str | None:
 def _check_entire_notebook(notebook_path: str) -> None:
     print("---- Notebook Quality & Style Check Report ----")
     try:
-        report = execute_command(
-            f"ruff check '{notebook_path}'",
-            "",
-        )
+        report = notebook_report(notebook_path)
         if report:
             print(report)
         else:
