@@ -18,7 +18,7 @@ It allows developers to lint and format code on a **cell-by-cell** basis or chec
 | **`%%cfix`** | Cell Magic | Fixes and Formats the current cell's code. |
 | **`%%creport`** | Cell Magic | Displays a linting report for the current cell. |
 | **`%clautofix`** | Line Magic | Activates or deactivates automatic code fixing and formatting before every cell execution. |
-| **`%clreport`** | Line Magic | Displays a linting report for the **entire saved notebook** (requires Google Drive mount). |
+| **`%clreport`** | Line Magic | Displays a linting report for the **entire notebook** (requires Google Drive mount). |
 
 After executing a cell magic command, the fixed/reported code is immediately executed (if applicable), maintaining the notebook workflow.
 
@@ -101,7 +101,7 @@ The extension must be explicitly loaded in the notebook session before use.
     Use line magic `%clreport` to check across the entire saved notebook file (requires the notebook to be saved to Google Drive and mounted).
 
     ```python
-    %clreport
+    %clreport /content/drive/MyDrive/Colab Notebooks/path/to/notebook.ipynb
     ```
 
 4. Activate/Deactivate Auto Fix (`%clautofix`)
