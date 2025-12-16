@@ -14,10 +14,10 @@ def _is_invalid_cell(cell: str) -> bool:
 
 @magics_class
 class ColabLinterMagics(Magics):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self._is_autofix_active = False
-        self._require_drive_mount_linter_instance = None
+        self._required_drive_mount_linter_instance = None
 
     @cell_magic
     def creport(self, line: str, cell: str) -> None:
@@ -67,11 +67,11 @@ class ColabLinterMagics(Magics):
             logger.info("Usage: %clautofix on or %clautofix off.")
 
     @line_magic
-    def clreport(self, line):
+    def clreport(self, line: str) -> None:
         if not self.__ensure_linter_initialized():
             return None
         try:
-            self._require_drive_mount_linter_instance.check()
+            self._required_drive_mount_linter_instance.report()
         except Exception as e:
             logger.exception(f"%clreport command failed during execution: {e}")
 
@@ -115,12 +115,12 @@ class ColabLinterMagics(Magics):
         self.shell.set_next_input(formatted_code, replace=True)
 
     def __ensure_linter_initialized(self) -> bool:
-        if self._require_drive_mount_linter_instance:
+        if self._required_drive_mount_linter_instance:
             return True
         try:
-            self._require_drive_mount_linter_instance = RequiredDriveMountLinter()
+            self._required_drive_mount_linter_instance = RequiredDriveMountLinter()
             return True
         except Exception as e:
             logger.exception(f"Required drive mount magic initialization failed.: {e}")
-            self._require_drive_mount_linter_instance = None
+            self._required_drive_mount_linter_instance = None
             return False

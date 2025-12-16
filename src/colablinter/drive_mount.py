@@ -121,7 +121,7 @@ class RequiredDriveMountLinter:
         )
         self.__check_notebook_path_exists()
 
-    def check(self) -> None:
+    def report(self) -> None:
         logger.info("---- Notebook Quality & Style Check Report ----")
         try:
             report = notebook_report(self.notebook_path)
@@ -132,7 +132,7 @@ class RequiredDriveMountLinter:
         except FileNotFoundError as e:
             raise FileNotFoundError(f"File not founded: {self.notebook_path}.") from e
         except Exception as e:
-            raise RuntimeError(f"%clreport failed: {e}") from e
+            raise RuntimeError(f"Notebook report failed: {e}") from e
         logger.info("-------------------------------------------------------------")
 
     @property
