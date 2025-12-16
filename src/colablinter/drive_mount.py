@@ -121,7 +121,7 @@ class RequiredDriveMountLinter:
         )
         self.__check_notebook_path_exists()
 
-    def check(self) -> None:
+    def report(self) -> None:
         logger.info("---- Notebook Quality & Style Check Report ----")
         try:
             report = notebook_report(self.notebook_path)
