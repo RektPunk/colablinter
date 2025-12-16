@@ -47,8 +47,8 @@ The extension must be explicitly loaded in the notebook session before use.
 
     class Example(   object ):
         def __init__    ( self, bar ):
-        if bar : bar+=1;  bar=bar* bar   ; return bar
-        else:
+          if bar : bar+=1;  bar=bar* bar   ; return bar
+          else:
                         some_string = "foo"
                         return (sys.path, some_string)
     ```
