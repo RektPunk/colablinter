@@ -105,7 +105,6 @@ The extension must be explicitly loaded in the notebook session before use.
     ```
 
 4. Check entire notebook (`%clreport`)
-
     Use line magic `%clreport` to check across the entire saved notebook file (requires the notebook to be saved to Google Drive and mounted).
 
     ```python
