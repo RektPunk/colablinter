@@ -5,7 +5,7 @@ try:
 
     def load_ipython_extension(ipython):
         ipython.register_magics(ColabLinterMagics)
-        logger.info("cl commands registered.")
+        logger.info("All commands registered.")
 
 except Exception as e:
     logger.exception(f"Initialization failed: {e}")

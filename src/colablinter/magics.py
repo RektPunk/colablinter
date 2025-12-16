@@ -14,7 +14,7 @@ def _is_invalid_cell(cell: str) -> bool:
 
 @magics_class
 class ColabLinterMagics(Magics):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self._is_autofix_active = False
         self._required_drive_mount_linter_instance = None
@@ -67,7 +67,7 @@ class ColabLinterMagics(Magics):
             logger.info("Usage: %clautofix on or %clautofix off.")
 
     @line_magic
-    def clreport(self, line):
+    def clreport(self, line: str) -> None:
         if not self.__ensure_linter_initialized():
             return None
         try:
