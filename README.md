@@ -15,10 +15,10 @@ It allows developers to lint and format code on a **cell-by-cell** basis or chec
 
 | Command | Type | Description |
 | :--- | :--- | :--- |
-| **`%%cl_fix`** | Cell Magic | Fixes and Formats the current cell's code. |
-| **`%%cl_report`** | Cell Magic | Displays a linting report for the current cell. |
-| **`%cl_autofix`** | Line Magic | Activates or deactivates automatic code fixing and formatting before every cell execution. |
-| **`%cl_report`** | Line Magic | Displays a linting report for the **entire saved notebook** (requires Google Drive mount). |
+| **`%%cfix`** | Cell Magic | Fixes and Formats the current cell's code. |
+| **`%%creport`** | Cell Magic | Displays a linting report for the current cell. |
+| **`%clautofix`** | Line Magic | Activates or deactivates automatic code fixing and formatting before every cell execution. |
+| **`%clreport`** | Line Magic | Displays a linting report for the **entire saved notebook** (requires Google Drive mount). |
 
 After executing a cell magic command, the fixed/reported code is immediately executed (if applicable), maintaining the notebook workflow.
 
@@ -38,11 +38,11 @@ The extension must be explicitly loaded in the notebook session before use.
 ```
 
 
-1. Fix and Format cell (`%%cl_fix`)
+1. Fix and Format cell (`%%cfix`)
 
-    `%%cl_fix` corrects code and runs the formatter. The cell executes the fixed code.
+    `%%cfix` corrects code and runs the formatter. The cell executes the fixed code.
     ```python
-    %%cl_fix
+    %%cfix
     import math, sys;
 
     class Example(   object ):
@@ -69,14 +69,14 @@ The extension must be explicitly loaded in the notebook session before use.
                 some_string = "foo"
                 return (sys.path, some_string)
     ```
+    **Note on F401 (Unused Imports):**
+    The linter is explicitly configured to **ignore F401 errors** (unused imports). This is to ensure compatibility with the stateful nature of Jupyter/Colab notebooks, where imports in one cell may be necessary for code execution in subsequent cells, preventing unintended breakage of the notebook's execution flow.
 
+2. Check cell quality (`%%creport`)
 
-
-2. Check cell quality (`%%cl_report`)
-
-    Use `%%cl_report` to see linting reports for the code below the command.
+    Use `%%creport` to see linting reports for the code below the command.
     ```python
-    %%cl_report
+    %%creport
 
     def invalid_code(x):
         return x + y # 'y' is not defined
@@ -96,22 +96,22 @@ The extension must be explicitly loaded in the notebook session before use.
     ```
     Note: After the report is displayed, the code in the cell executes as normal. If errors exist (like F821), execution will fail.
 
-3. Check entire notebook (`%cl_report`)
+3. Check entire notebook (`%clreport`)
 
-    Use line magic `%cl_report` to check across the entire saved notebook file (requires the notebook to be saved to Google Drive and mounted).
+    Use line magic `%clreport` to check across the entire saved notebook file (requires the notebook to be saved to Google Drive and mounted).
 
     ```python
-    %cl_report
+    %clreport
     ```
 
-4. Activate/Deactivate Auto Fix (`%cl_autofix`)
-    The `%cl_autofix` line magic allows you to automatically fix code before every code cell is executed.
+4. Activate/Deactivate Auto Fix (`%clautofix`)
+    The `%clautofix` line magic allows you to automatically fix code before every code cell is executed.
 
     To Activate Auto Fixing:
     ```python
-    %cl_autofix on # %cl_autofix off when you want to deactivate
+    %clautofix on # %clautofix off when you want to deactivate
     ```
 
 ## Known Caveats & Troubleshooting
 
-Magic Command Execution: When using `%%cl_report` or `%%cl_fix` with `%cl_autofix` on active, the autofix mechanism is temporarily suppressed during the final execution step to prevent infinite loops or dual checks. If you want to disable auto-fixing, use `%cl_autofix off`
+Magic Command Execution: When using `%%creport` or `%%cfix` with `%clautofix` on active, the autofix mechanism is temporarily suppressed during the final execution step to prevent infinite loops or dual checks. If you want to disable auto-fixing, use `%clautofix off`
