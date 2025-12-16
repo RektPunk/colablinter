@@ -1,9 +1,12 @@
+import os
+
 from IPython.core.interactiveshell import ExecutionInfo
 from IPython.core.magic import Magics, cell_magic, line_magic, magics_class
 
-from colablinter.command import cell_check, cell_format, cell_report
-from colablinter.drive_mount import RequiredDriveMountLinter
+from colablinter.command import cell_check, cell_format, cell_report, notebook_report
 from colablinter.logger import logger
+
+_BASE_PATH = "/content/drive"
 
 
 def _is_invalid_cell(cell: str) -> bool:
@@ -12,12 +15,27 @@ def _is_invalid_cell(cell: str) -> bool:
     return False
 
 
+def _ensure_drive_mounted():
+    if os.path.exists(_BASE_PATH):
+        return
+
+    try:
+        from google.colab import drive
+
+        logger.info("Mounting Google Drive required.")
+        drive.mount(_BASE_PATH)
+    except ImportError as e:
+        raise ImportError(
+            "This command requires the 'google.colab' environment.\n"
+            "The command must be run inside a Google Colab notebook to access the Drive."
+        ) from e
+
+
 @magics_class
 class ColabLinterMagics(Magics):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self._is_autofix_active = False
-        self._required_drive_mount_linter_instance = None
 
     @cell_magic
     def creport(self, line: str, cell: str) -> None:
@@ -68,12 +86,26 @@ class ColabLinterMagics(Magics):
 
     @line_magic
     def clreport(self, line: str) -> None:
-        if not self.__ensure_linter_initialized():
-            return None
+        _ensure_drive_mounted()
+        notebook_path = line.strip().strip("'").strip('"')
+        if not notebook_path:
+            logger.warning(
+                "Usage: %clreport /content/drive/MyDrive/Colab Notebooks/path/to/notebook.ipynb"
+            )
+            return
+
+        logger.info("---- Notebook Quality & Style Check Report ----")
         try:
-            self._required_drive_mount_linter_instance.report()
+            report = notebook_report(notebook_path)
+            if report:
+                logger.info(report)
+            else:
+                logger.info("No issues found in the entire notebook. Code is clean.")
+        except FileNotFoundError as e:
+            raise FileNotFoundError(f"File not founded: {notebook_path}, {e}") from e
         except Exception as e:
-            logger.exception(f"%clreport command failed during execution: {e}")
+            raise RuntimeError(f"Notebook report command failed: {e}") from e
+        logger.info("-------------------------------------------------------------")
 
     def __execute(self, cell: str) -> None:
         if self._is_autofix_active:
@@ -113,14 +145,3 @@ class ColabLinterMagics(Magics):
             return None
 
         self.shell.set_next_input(formatted_code, replace=True)
-
-    def __ensure_linter_initialized(self) -> bool:
-        if self._required_drive_mount_linter_instance:
-            return True
-        try:
-            self._required_drive_mount_linter_instance = RequiredDriveMountLinter()
-            return True
-        except Exception as e:
-            logger.exception(f"Required drive mount magic initialization failed.: {e}")
-            self._required_drive_mount_linter_instance = None
-            return False
