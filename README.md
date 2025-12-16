@@ -97,6 +97,7 @@ The extension must be explicitly loaded in the notebook session before use.
     Note: After the report is displayed, the code in the cell executes as normal. If errors exist (like F821), execution will fail.
 
 3. Activate/Deactivate Auto Fix (`%clautofix`)
+
     The `%clautofix` line magic allows you to automatically fix code before every code cell is executed.
 
     To Activate Auto Fixing:
@@ -105,6 +106,7 @@ The extension must be explicitly loaded in the notebook session before use.
     ```
 
 4. Check entire notebook (`%clreport`)
+
     Use line magic `%clreport` to check across the entire saved notebook file (requires the notebook to be saved to Google Drive and mounted).
 
     ```python
