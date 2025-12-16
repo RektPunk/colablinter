@@ -97,22 +97,7 @@ def _find_notebook_path(filename: str) -> str | None:
     return None
 
 
-def _check_entire_notebook(notebook_path: str) -> None:
-    logger.info("---- Notebook Quality & Style Check Report ----")
-    try:
-        report = notebook_report(notebook_path)
-        if report:
-            logger.info(report)
-        else:
-            logger.info("No issues found in the entire notebook. Code is clean.")
-    except FileNotFoundError as e:
-        raise FileNotFoundError(f"File not founded: {notebook_path}.") from e
-    except Exception as e:
-        raise RuntimeError(f"%cl_check failed: {e}") from e
-    logger.info("-------------------------------------------------------------")
-
-
-class RequiredDriveMountColabLinter:
+class RequiredDriveMountLinter:
     __instance = None
     _notebook_filename_cache: str | None = None
     _notebook_path_cache: str | None = None
@@ -123,29 +108,36 @@ class RequiredDriveMountColabLinter:
         return cls.__instance
 
     def __init__(self) -> None:
-        if RequiredDriveMountColabLinter._notebook_path_cache:
+        if RequiredDriveMountLinter._notebook_path_cache:
             return None
 
         _colab_drive_mount()
 
-        RequiredDriveMountColabLinter._notebook_filename_cache = (
-            _get_notebook_filename()
-        )
+        RequiredDriveMountLinter._notebook_filename_cache = _get_notebook_filename()
         self.__check_notebook_filename_exists()
 
-        RequiredDriveMountColabLinter._notebook_path_cache = _find_notebook_path(
+        RequiredDriveMountLinter._notebook_path_cache = _find_notebook_path(
             self.notebook_filename
         )
         self.__check_notebook_path_exists()
 
     def check(self) -> None:
-        _check_entire_notebook(self.notebook_path)
+        logger.info("---- Notebook Quality & Style Check Report ----")
+        try:
+            report = notebook_report(self.notebook_path)
+            if report:
+                logger.info(report)
+            else:
+                logger.info("No issues found in the entire notebook. Code is clean.")
+        except FileNotFoundError as e:
+            raise FileNotFoundError(f"File not founded: {self.notebook_path}.") from e
+        except Exception as e:
+            raise RuntimeError(f"%clreport failed: {e}") from e
+        logger.info("-------------------------------------------------------------")
 
     @property
     def notebook_filename(self) -> str:
-        if RequiredDriveMountColabLinter._notebook_filename_cache is None:
-            raise ValueError("Notebook filename has not been initialized.")
-        return RequiredDriveMountColabLinter._notebook_filename_cache
+        return RequiredDriveMountLinter._notebook_filename_cache
 
     def __check_notebook_filename_exists(self) -> None:
         if self.notebook_filename is None:
@@ -156,9 +148,7 @@ class RequiredDriveMountColabLinter:
 
     @property
     def notebook_path(self) -> str:
-        if RequiredDriveMountColabLinter._notebook_path_cache is None:
-            raise ValueError("Notebook path has not been initialized.")
-        return RequiredDriveMountColabLinter._notebook_path_cache
+        return RequiredDriveMountLinter._notebook_path_cache
 
     def __check_notebook_path_exists(self) -> None:
         if self.notebook_path is None:

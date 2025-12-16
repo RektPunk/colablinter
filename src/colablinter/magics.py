@@ -2,11 +2,11 @@ from IPython.core.interactiveshell import ExecutionInfo
 from IPython.core.magic import Magics, cell_magic, line_magic, magics_class
 
 from colablinter.command import cell_check, cell_format, cell_report
-from colablinter.drive_mount import RequiredDriveMountColabLinter
+from colablinter.drive_mount import RequiredDriveMountLinter
 from colablinter.logger import logger
 
 
-def is_invalid_cell(cell: str) -> bool:
+def _is_invalid_cell(cell: str) -> bool:
     if cell.startswith(("%", "!")):
         return True
     return False
@@ -14,32 +14,21 @@ def is_invalid_cell(cell: str) -> bool:
 
 @magics_class
 class ColabLinterMagics(Magics):
-    def __init__(self, shell=None, **kwargs):
-        super().__init__(shell, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self._is_autofix_active = False
+        self._require_drive_mount_linter_instance = None
 
     @cell_magic
-    def cl_report(self, line: str, cell: str) -> None:
+    def creport(self, line: str, cell: str) -> None:
         stripped_cell = cell.strip()
         cell_report(stripped_cell)
-
-        if self._is_autofix_active:
-            logger.info(
-                "Autofix is temporarily suppressed to prevent dual execution. "
-                "To disable, run: %cl_autofix off"
-            )
         self.__execute(stripped_cell)
 
     @cell_magic
-    def cl_fix(self, line: str, cell: str) -> None:
+    def cfix(self, line: str, cell: str) -> None:
         stripped_cell = cell.strip()
-        if self._is_autofix_active:
-            logger.info(
-                "Autofix is temporarily suppressed to prevent dual execution. "
-                "To disable, run: %cl_autofix off"
-            )
-
-        if is_invalid_cell(stripped_cell):
+        if _is_invalid_cell(stripped_cell):
             logger.info(
                 "Fix skipped. Cell starts with magic (%, %%) or shell (!...) command."
             )
@@ -61,7 +50,7 @@ class ColabLinterMagics(Magics):
             self.__execute(fixed_code)
 
     @line_magic
-    def cl_autofix(self, line: str) -> None:
+    def clautofix(self, line: str) -> None:
         action = line.strip().lower()
         if action == "on":
             self.shell.events.register("pre_run_cell", self.__autofix)
@@ -75,10 +64,23 @@ class ColabLinterMagics(Magics):
             self._is_autofix_active = False
             logger.info("Auto-fix deactivated.")
         else:
-            logger.info("Usage: %%cl_autofix on or %%cl_autofix off.")
+            logger.info("Usage: %clautofix on or %clautofix off.")
+
+    @line_magic
+    def clreport(self, line):
+        if not self.__ensure_linter_initialized():
+            return None
+        try:
+            self._require_drive_mount_linter_instance.check()
+        except Exception as e:
+            logger.exception(f"%clreport command failed during execution: {e}")
 
     def __execute(self, cell: str) -> None:
         if self._is_autofix_active:
+            logger.info(
+                "Autofix is temporarily suppressed to prevent dual execution. "
+                "To disable, run: %clautofix off"
+            )
             try:
                 self.shell.events.unregister("pre_run_cell", self.__autofix)
             except ValueError:
@@ -96,7 +98,7 @@ class ColabLinterMagics(Magics):
 
     def __autofix(self, info: ExecutionInfo) -> None:
         stripped_cell = info.raw_cell.strip()
-        if is_invalid_cell(stripped_cell):
+        if _is_invalid_cell(stripped_cell):
             logger.info("Autofix is skipped for cell with magic or terminal.")
             return None
 
@@ -112,29 +114,13 @@ class ColabLinterMagics(Magics):
 
         self.shell.set_next_input(formatted_code, replace=True)
 
-
-@magics_class
-class RequiredDriveMountMagics(Magics):
-    _linter_instance = None
-
-    @line_magic
-    def cl_report(self, line):
-        if not self.__ensure_linter_initialized():
-            return None
-
-        try:
-            RequiredDriveMountMagics._linter_instance.check()
-        except Exception as e:
-            logger.exception(f"%%cl_report command failed during execution: {e}")
-
     def __ensure_linter_initialized(self) -> bool:
-        if RequiredDriveMountMagics._linter_instance:
+        if self._require_drive_mount_linter_instance:
             return True
-
         try:
-            RequiredDriveMountMagics._linter_instance = RequiredDriveMountColabLinter()
+            self._require_drive_mount_linter_instance = RequiredDriveMountLinter()
             return True
         except Exception as e:
             logger.exception(f"Required drive mount magic initialization failed.: {e}")
-            RequiredDriveMountMagics._linter_instance = None
+            self._require_drive_mount_linter_instance = None
             return False
