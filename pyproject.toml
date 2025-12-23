@@ -1,6 +1,6 @@
 [project]
 name = "colablinter"
-version = "0.1.4"
+version = "0.1.5"
 description = "Linting and formatting Python code in Google Colab."
 readme = "README.md"
 authors = [
@@ -13,7 +13,7 @@ classifiers = [
     "Operating System :: OS Independent",
     "Framework :: IPython",
 ]
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 dependencies = [
     "ipython>=7.34.0",
     "ruff>=0.14.7",
