@@ -1,4 +1,7 @@
+import re
 import subprocess
+
+import sqlparse
 
 from colablinter.logger import logger
 
@@ -64,3 +67,21 @@ def notebook_report(notebook_path: str) -> None:
         _NOTEBOOK_REPORT_COMMAND.format(notebook_path=notebook_path),
         "",
     )
+
+
+def cell_sql(cell: str, var_name: str) -> str | None:
+    pattern = rf'([\s\S]*?){var_name}\s*=\s*([frb]*?)(?P<q>"""|\'\'\'|"|\')([\s\S]*?)(?P=q)(?P<suffix>[\s\S]*)'
+    match = re.search(pattern, cell)
+    if not match:
+        logger.warning(f"SQL variable '{var_name}' assignment not found.")
+        return None
+
+    prefix = match.group(1)
+    py_prefix = match.group(2)
+    raw_sql = match.group(4)
+    suffix = match.group(5)
+    formatted_sql = sqlparse.format(
+        raw_sql.strip(), reindent=True, keyword_case="upper", indent_width=4
+    )
+
+    return f'{prefix}{var_name} = {py_prefix}"""\n{formatted_sql}\n"""{suffix}'
