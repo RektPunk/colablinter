@@ -1,8 +1,7 @@
 import re
 import subprocess
 
-import sqlfluff
-from sqlfluff.core import FluffConfig
+from sqlfluff.core import FluffConfig, Linter
 
 from colablinter.logger import logger
 
@@ -16,8 +15,11 @@ _NOTEBOOK_REPORT_COMMAND = (
 )
 
 _FLUFF_CONFIG = FluffConfig(
-    {
-        "core": {"dialect": "ansi", "indent_unit": "space"},
+    configs={
+        "core": {
+            "dialect": "postgres",
+            "indent_unit": "space",
+        },
         "indentation": {
             "indent_unit": "space",
             "tab_space_size": 4,
@@ -25,11 +27,14 @@ _FLUFF_CONFIG = FluffConfig(
         },
         "rules": {
             "capitalisation.keywords": {"capitalisation_policy": "upper"},
-            "capitalisation.identifiers": {"capitalisation_policy": "consistent"},
-            "aliasing.column": {"aliasing": "explicit"},  # AS 키워드 강제 등
+            "capitalisation.types": {"capitalisation_policy": "upper"},
+            "capitalisation.literals": {"capitalisation_policy": "upper"},
+            "aliasing.column": {"aliasing": "explicit"},
+            "aliasing.table": {"aliasing": "explicit"},
         },
     }
 )
+_SQL_LINTER = Linter(config=_FLUFF_CONFIG)
 
 
 def execute_command(command: str, input_data: str) -> str | None:
@@ -91,11 +96,13 @@ def cell_sql(cell: str, var_name: str) -> str | None:
     match = re.search(pattern, cell)
     if not match:
         return None
+
     prefix, py_prefix, _, raw_sql, suffix = match.groups()
     try:
-        formatted_sql = sqlfluff.fix(raw_sql.strip(), config=_FLUFF_CONFIG).strip()
-    except Exception as e:
-        formatted_sql = raw_sql.strip()
-        logger.exception(f"SQLFluff Error: {e}")
-    result = f'{prefix}{var_name} = {py_prefix}"""\n{formatted_sql}\n"""{suffix}'
-    return result.strip()
+        lint_result = _SQL_LINTER.lint_string(raw_sql.strip(), fix=True)
+        formatted_sql, is_success = lint_result.fix_string()
+        if not is_success:
+            raise Exception
+        return f'{prefix}{var_name} = {py_prefix}"""\n{formatted_sql.strip()}\n"""{suffix}'.strip()
+    except Exception:
+        return None
