@@ -19,12 +19,13 @@ It allows developers to lint and format code on a **cell-by-cell** basis or chec
 | **`%%creport`** | Cell Magic | Displays a linting report for the current cell. |
 | **`%clautofix`** | Line Magic | Activates or deactivates automatic code fixing and formatting before every cell execution. |
 | **`%clreport`** | Line Magic | Displays a linting report for the **entire saved notebook** (requires Google Drive mount). |
+| **`%%csql`** | Cell Magic | Formats SQL strings within the cell (e.g., query = """..."""). |
 
 After executing a cell magic command, the fixed/reported code is immediately executed (if applicable), maintaining the notebook workflow.
 
 ## Installation
 
-Requires Python 3.12 or newer.
+Requires Python 3.10 or newer.
 
 ```bash
 pip install colablinter
@@ -113,7 +114,38 @@ The extension must be explicitly loaded in the notebook session before use.
     %clreport /content/drive/MyDrive/Colab Notebooks/path/to/notebook.ipynb
     ```
 
+5. Format SQL strings (%%csql)
+
+    The `%%csql` cell magic identifies a specific SQL string variable within the cell and automatically reformats it using `SQLFluff`. It enforces professional SQL standards, such as keyword capitalization and consistent indentation.
+    ```python
+    %%csql some_query
+    some_query = """
+    select u.user_id, u.phone_number, u.email, count(o.order_id) as total_orders
+    from users u join orders o on u.user_id = o.user_id
+    where u.user_id is not null and u.status = 'active' and o.created_at >= '2025-01-01'
+    group by u.user_id, u.phone_number, u.email
+    order by total_orders desc
+    """
+    ```
+
+    Fixed cell:
+    ```python
+    some_query = """
+    SELECT
+        u.user_id,
+        u.phone_number,
+        u.email,
+        count(o.order_id) AS total_orders
+    FROM users AS u INNER JOIN orders AS o ON u.user_id = o.user_id
+    WHERE
+        u.user_id IS NOT NULL
+        AND u.status = 'active'
+        AND o.created_at >= '2025-01-01'
+    GROUP BY u.user_id, u.phone_number, u.email
+    ORDER BY total_orders DESC
+    """
+    ```
 
 ## Known Caveats & Troubleshooting
 
-Magic Command Execution: When using `%%creport` or `%%cfix` with `%clautofix` on active, the autofix mechanism is temporarily suppressed during the final execution step to prevent infinite loops or dual checks. If you want to disable auto-fixing, use `%clautofix off`
+Magic Command Execution: When using magic or terminal commands with `%clautofix` on active, the autofix mechanism is temporarily suppressed during the final execution step to prevent infinite loops or dual checks. If you want to disable auto-fixing, use `%clautofix off`

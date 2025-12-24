@@ -1,4 +1,7 @@
+import re
 import subprocess
+
+from sqlfluff.core import FluffConfig, Linter
 
 from colablinter.logger import logger
 
@@ -10,6 +13,28 @@ _CELL_FORMAT_COMMAND = f"ruff format --stdin-filename={_FILE_NAME}"
 _NOTEBOOK_REPORT_COMMAND = (
     f"ruff check --select {_RULESET} --line-length 100 '{{notebook_path}}'"
 )
+
+_FLUFF_CONFIG = FluffConfig(
+    configs={
+        "core": {
+            "dialect": "postgres",
+            "indent_unit": "space",
+        },
+        "indentation": {
+            "indent_unit": "space",
+            "tab_space_size": 4,
+            "indented_joins": True,
+        },
+        "rules": {
+            "capitalisation.keywords": {"capitalisation_policy": "upper"},
+            "capitalisation.types": {"capitalisation_policy": "upper"},
+            "capitalisation.literals": {"capitalisation_policy": "upper"},
+            "aliasing.column": {"aliasing": "explicit"},
+            "aliasing.table": {"aliasing": "explicit"},
+        },
+    }
+)
+_SQL_LINTER = Linter(config=_FLUFF_CONFIG)
 
 
 def execute_command(command: str, input_data: str) -> str | None:
@@ -64,3 +89,20 @@ def notebook_report(notebook_path: str) -> None:
         _NOTEBOOK_REPORT_COMMAND.format(notebook_path=notebook_path),
         "",
     )
+
+
+def cell_sql(cell: str, var_name: str) -> str | None:
+    pattern = rf'([\s\S]*?){var_name}\s*=\s*([frb]*?)(?P<q>"""|\'\'\'|"|\')([\s\S]*?)(?P=q)(?P<suffix>[\s\S]*)'
+    match = re.search(pattern, cell)
+    if not match:
+        return None
+
+    prefix, py_prefix, _, raw_sql, suffix = match.groups()
+    try:
+        lint_result = _SQL_LINTER.lint_string(raw_sql.strip(), fix=True)
+        formatted_sql, is_success = lint_result.fix_string()
+        if not is_success:
+            raise Exception
+        return f'{prefix}{var_name} = {py_prefix}"""\n{formatted_sql.strip()}\n"""{suffix}'.strip()
+    except Exception:
+        return None
