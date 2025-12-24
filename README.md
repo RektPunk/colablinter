@@ -114,7 +114,7 @@ The extension must be explicitly loaded in the notebook session before use.
     %clreport /content/drive/MyDrive/Colab Notebooks/path/to/notebook.ipynb
     ```
 
-5. Format SQL strings (%%csql)
+5. Format SQL strings (`%%csql`)
 
     The `%%csql` cell magic identifies a specific SQL string variable within the cell and automatically reformats it using `SQLFluff`. It enforces professional SQL standards, such as keyword capitalization and consistent indentation.
     ```python
