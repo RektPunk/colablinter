@@ -1,7 +1,8 @@
 import re
 import subprocess
 
-import sqlparse
+import sqlfluff
+from sqlfluff.core import FluffConfig
 
 from colablinter.logger import logger
 
@@ -12,6 +13,22 @@ _CELL_CHECK_COMMAND = f"{_CELL_REPORT_COMMAND} --fix"
 _CELL_FORMAT_COMMAND = f"ruff format --stdin-filename={_FILE_NAME}"
 _NOTEBOOK_REPORT_COMMAND = (
     f"ruff check --select {_RULESET} --line-length 100 '{{notebook_path}}'"
+)
+
+_FLUFF_CONFIG = FluffConfig(
+    {
+        "core": {"dialect": "ansi", "indent_unit": "space"},
+        "indentation": {
+            "indent_unit": "space",
+            "tab_space_size": 4,
+            "indented_joins": True,
+        },
+        "rules": {
+            "capitalisation.keywords": {"capitalisation_policy": "upper"},
+            "capitalisation.identifiers": {"capitalisation_policy": "consistent"},
+            "aliasing.column": {"aliasing": "explicit"},  # AS 키워드 강제 등
+        },
+    }
 )
 
 
@@ -73,15 +90,12 @@ def cell_sql(cell: str, var_name: str) -> str | None:
     pattern = rf'([\s\S]*?){var_name}\s*=\s*([frb]*?)(?P<q>"""|\'\'\'|"|\')([\s\S]*?)(?P=q)(?P<suffix>[\s\S]*)'
     match = re.search(pattern, cell)
     if not match:
-        logger.warning(f"SQL variable '{var_name}' assignment not found.")
         return None
-
-    prefix = match.group(1)
-    py_prefix = match.group(2)
-    raw_sql = match.group(4)
-    suffix = match.group(5)
-    formatted_sql = sqlparse.format(
-        raw_sql.strip(), reindent=True, keyword_case="upper", indent_width=4
-    )
-
-    return f'{prefix}{var_name} = {py_prefix}"""\n{formatted_sql}\n"""{suffix}'
+    prefix, py_prefix, _, raw_sql, suffix = match.groups()
+    try:
+        formatted_sql = sqlfluff.fix(raw_sql.strip(), config=_FLUFF_CONFIG).strip()
+    except Exception as e:
+        formatted_sql = raw_sql.strip()
+        logger.exception(f"SQLFluff Error: {e}")
+    result = f'{prefix}{var_name} = {py_prefix}"""\n{formatted_sql}\n"""{suffix}'
+    return result.strip()
