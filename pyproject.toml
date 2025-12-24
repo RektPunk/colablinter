@@ -17,7 +17,7 @@ requires-python = ">=3.10"
 dependencies = [
     "ipython>=7.34.0",
     "ruff>=0.14.7",
-    "sqlfluff",
+    "sqlfluff>=3.5.0",
 ]
 
 [project.urls]
