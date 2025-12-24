@@ -1,6 +1,6 @@
 [project]
 name = "colablinter"
-version = "0.1.5"
+version = "0.1.6"
 description = "Linting and formatting Python code in Google Colab."
 readme = "README.md"
 authors = [
@@ -17,7 +17,7 @@ requires-python = ">=3.10"
 dependencies = [
     "ipython>=7.34.0",
     "ruff>=0.14.7",
-    "sqlfluff>=3.5.0",
+    "sqlfluff",
 ]
 
 [project.urls]
