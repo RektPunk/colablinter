@@ -31,7 +31,7 @@ pip install colablinter
 ```
 
 ## Usage
-The extension must be explicitly loaded in the notebook session before use.
+The extension must be explicitly loaded in the notebook session before use. Once the extension is loaded, `%clautofix` is triggered automatically.
 
 ```python
 %load_ext colablinter
@@ -72,7 +72,7 @@ The extension must be explicitly loaded in the notebook session before use.
 
 2. Check cell quality (`%%creport`)
 
-    Use `%%creport` to see linting reports for the code below the command.
+    Use `%%creport` to see linting reports for the code below the command. After the report is displayed, the code in the cell executes as normal.
     ```python
     %%creport
 
@@ -92,8 +92,6 @@ The extension must be explicitly loaded in the notebook session before use.
 
     Found 1 error.
     ```
-    Note: After the report is displayed, the code in the cell executes as normal. If errors exist (like F821), execution will fail.
-
     **Note on F401 (Unused Imports):**
     The linter is explicitly configured to **ignore F401 errors** (unused imports). This is to ensure compatibility with the stateful nature of Jupyter/Colab notebooks, where imports in one cell may be necessary for code execution in subsequent cells, preventing unintended breakage of the notebook's execution flow.
 
