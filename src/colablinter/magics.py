@@ -7,7 +7,6 @@ from colablinter.command import (
     cell_check,
     cell_format,
     cell_report,
-    cell_sql,
     notebook_report,
 )
 from colablinter.logger import logger
@@ -112,21 +111,6 @@ class ColabLinterMagics(Magics):
         except Exception as e:
             raise RuntimeError(f"Notebook report command failed: {e}") from e
         logger.info("-------------------------------------------------------------")
-
-    @cell_magic
-    def csql(self, line: str, cell: str) -> None:
-        var_name = line.strip()
-        if not var_name:
-            logger.warning("Usage: %%csql var_name")
-            self.__execute(cell)
-            return
-
-        formatted_code = cell_sql(cell, var_name)
-        if formatted_code:
-            self.shell.set_next_input(formatted_code, replace=True)
-            self.__execute(formatted_code)
-        else:
-            self.__execute(cell)
 
     def __execute(self, cell: str) -> None:
         if self._is_autofix_active:
