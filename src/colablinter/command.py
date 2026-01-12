@@ -8,7 +8,7 @@ from colablinter.logger import logger
 _FILE_NAME = "notebook_cell.py"
 _RULESET = "F,E,I,B"
 _CELL_REPORT_COMMAND = f"ruff check --select {_RULESET} --ignore F401 --line-length 100 --stdin-filename={_FILE_NAME}"
-_CELL_CHECK_COMMAND = f"{_CELL_REPORT_COMMAND} --fix"
+_CELL_CHECK_COMMAND = f"ruff check --select I --stdin-filename={_FILE_NAME} --fix"
 _CELL_FORMAT_COMMAND = f"ruff format --stdin-filename={_FILE_NAME}"
 _NOTEBOOK_REPORT_COMMAND = (
     f"ruff check --select {_RULESET} --line-length 100 '{{notebook_path}}'"
