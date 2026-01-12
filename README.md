@@ -92,7 +92,7 @@ The extension must be explicitly loaded in the notebook session before use. Once
 
     Found 1 error.
     ```
-    **Note on F401 (Unused Imports):**
+    **Note on F401:**
     The linter is explicitly configured to **ignore F401 errors** (unused imports). This is to ensure compatibility with the stateful nature of Jupyter/Colab notebooks, where imports in one cell may be necessary for code execution in subsequent cells, preventing unintended breakage of the notebook's execution flow.
 
 3. Activate/Deactivate Auto Fix (`%clautofix`)
