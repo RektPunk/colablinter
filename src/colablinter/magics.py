@@ -55,7 +55,7 @@ class CellTimer:
 class ColabLinterMagics(Magics):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-        self._is_autofix_active = False
+        self._is_autoformat_active = True
         self.timer = CellTimer()
 
     @cell_magic
@@ -69,7 +69,7 @@ class ColabLinterMagics(Magics):
         stripped_cell = cell.strip()
         if _is_invalid_cell(stripped_cell):
             logger.info(
-                "Fix skipped. Cell starts with magic (%, %%) or shell (!...) command."
+                "Format skipped. Cell starts with magic (%, %%) or shell (!...) command."
             )
             self.__execute(stripped_cell)
             return None
@@ -93,14 +93,14 @@ class ColabLinterMagics(Magics):
         action = line.strip().lower()
         if action == "on":
             self.__register()
-            self._is_autofix_active = True
-            logger.info("Auto-fix activated for pre-run cells.")
+            self._is_autoformat_active = True
+            logger.info("Auto-format activated for pre-run cells.")
         elif action == "off":
             self.__unregister()
-            self._is_autofix_active = False
-            logger.info("Auto-fix deactivated.")
+            self._is_autoformat_active = False
+            logger.info("Auto-format deactivated.")
         else:
-            logger.info("Usage: %clautofix on or %clautofix off.")
+            logger.info("Usage: %clautoformat on or %clautoformat off.")
 
     @line_magic
     def clcheck(self, line: str) -> None:
@@ -126,10 +126,10 @@ class ColabLinterMagics(Magics):
         logger.info("-------------------------------------------------------------")
 
     def __execute(self, cell: str) -> None:
-        if self._is_autofix_active:
+        if self._is_autoformat_active:
             logger.info(
-                "Autofix is temporarily suppressed to prevent dual execution. "
-                "To disable, run: %clautofix off"
+                "autoformat is temporarily suppressed to prevent dual execution. "
+                "To disable, run: %clautoformat off"
             )
             self.__unregister()
         try:
@@ -137,30 +137,30 @@ class ColabLinterMagics(Magics):
         except Exception as e:
             logger.exception(f"Code execution failed: {e}")
         finally:
-            if self._is_autofix_active:
+            if self._is_autoformat_active:
                 self.__register()
 
-    def __autofix(self, info: ExecutionInfo) -> None:
+    def __autoformat(self, info: ExecutionInfo) -> None:
         stripped_cell = info.raw_cell.strip()
         if _is_invalid_cell(stripped_cell):
-            logger.info("Autofix is skipped for cell with magic or terminal.")
+            logger.info("autoformat is skipped for cell with magic or terminal.")
             return None
 
         formatted_code = cell_format(stripped_cell)
         if formatted_code is None:
-            logger.error("Formatter failed during auto-fix.")
+            logger.error("Formatter failed during auto-format.")
             return None
 
         fixed_code = cell_check_isort(formatted_code)
         if fixed_code is None:
-            logger.error("Linter check failed during auto-fix.")
+            logger.error("Linter check failed during auto-format.")
             return None
 
         self.shell.set_next_input(fixed_code, replace=True)
 
     def __register(self) -> None:
         for event, callback in [
-            ("pre_run_cell", self.__autofix),
+            ("pre_run_cell", self.__autoformat),
             ("pre_run_cell", self.timer.start),
             ("post_run_cell", self.timer.stop),
         ]:
@@ -171,7 +171,7 @@ class ColabLinterMagics(Magics):
 
     def __unregister(self) -> None:
         for event, callback in [
-            ("pre_run_cell", self.__autofix),
+            ("pre_run_cell", self.__autoformat),
             ("pre_run_cell", self.timer.start),
             ("post_run_cell", self.timer.stop),
         ]:
