@@ -5,22 +5,22 @@
 
 ## Overview
 
-**`colablinter`** is an **IPython magic command extension** designed specifically for Jupyter and Google Colab notebooks.
+**`colablinter`** is an **IPython magic command extension** designed for Jupyter and Google Colab notebooks.
 
-It integrates the high-speed linter **`ruff`** to perform code quality checks and enforce standards directly within Jupyter/Colab cells.
+It integrates the high-speed linter **`ruff`** to perform code quality checks and formats directly within Jupyter/Colab cells.
 
-It allows developers to lint and format code on a **cell-by-cell** basis or check the **entire notebook** with simple commands.
+It allows developers to lint and format code on a **cell-by-cell** basis or the **entire notebook** with simple commands.
 
 ## Magic cell Commands
 
-| Command | Type | Description |
-| :--- | :--- | :--- |
-| **`%%cformat`** | Cell Magic | Fixes isort and Formats the current cell's code. |
-| **`%%ccheck`** | Cell Magic | Displays a linting report for the current cell. |
-| **`%clautoformat`** | Line Magic | Activates or deactivates automatic code isort fixing, formatting, and time check before every cell execution. |
-| **`%clcheck`** | Line Magic | Displays a linting report for the **entire saved notebook** (requires Google Drive mount). |
+| Command | Description |
+| :--- | :--- |
+| **`%%cformat`** | Fixes isort and Formats the current cell's code. |
+| **`%%ccheck`** | Displays a linting report for the current cell. |
+| **`%clautoformat`** | Activates or deactivates automatic code isort fixing, formatting, and time check before every cell execution. |
+| **`%clcheck`** | Displays a linting report for the **entire saved notebook** (requires Google Drive mount). |
 
-After executing a cell magic command, the fixed/reported code is immediately executed (if applicable), maintaining the notebook workflow.
+After executing a cell magic command, the checked/formatted code is immediately executed (if applicable), maintaining the notebook workflow.
 
 ## Installation
 

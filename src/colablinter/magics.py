@@ -74,19 +74,19 @@ class ColabLinterMagics(Magics):
             self.__execute(stripped_cell)
             return None
 
-        fixed_code = cell_check_isort(stripped_cell)
-        if fixed_code is None:
-            logger.error("Linter check failed. Code not modified.")
+        formatted_code = cell_format(stripped_cell)
+        if formatted_code is None:
+            logger.error("Formatter failed. Code not modified.")
             self.__execute(stripped_cell)
             return None
 
-        formatted_code = cell_format(fixed_code)
-        if formatted_code:
-            self.shell.set_next_input(formatted_code, replace=True)
-            self.__execute(formatted_code)
-        else:
-            logger.error("Formatter failed. Check-fixed code executed.")
+        fixed_code = cell_check_isort(formatted_code)
+        if fixed_code:
+            self.shell.set_next_input(fixed_code, replace=True)
             self.__execute(fixed_code)
+        else:
+            logger.error("Formatter failed. Formatted code executed.")
+            self.__execute(formatted_code)
 
     @line_magic
     def clautoformat(self, line: str) -> None:
