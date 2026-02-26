@@ -4,11 +4,13 @@ from colablinter.logger import logger
 
 _FILE_NAME = "notebook_cell.py"
 _RULESET = "F,E,I,B"
-_CELL_REPORT_COMMAND = f"ruff check --select {_RULESET} --ignore F401 --line-length 100 --stdin-filename={_FILE_NAME}"
-_CELL_CHECK_COMMAND = f"ruff check --select I --stdin-filename={_FILE_NAME} --fix"
+_CELL_CHECK_COMMAND = (
+    f"ruff check --select {_RULESET} --ignore F401,E501 --stdin-filename={_FILE_NAME}"
+)
+_CELL_CHECK_ISORT_COMMAND = f"ruff check --select I --stdin-filename={_FILE_NAME} --fix"
 _CELL_FORMAT_COMMAND = f"ruff format --stdin-filename={_FILE_NAME}"
 _NOTEBOOK_REPORT_COMMAND = (
-    f"ruff check --select {_RULESET} --line-length 100 '{{notebook_path}}'"
+    f"ruff check --select {_RULESET} --ignore E501 '{{notebook_path}}'"
 )
 
 
@@ -37,16 +39,16 @@ def execute_command(command: str, input_data: str) -> str | None:
         return None
 
 
-def cell_report(cell: str) -> None:
-    report = execute_command(_CELL_REPORT_COMMAND, input_data=cell)
+def cell_check(cell: str) -> None:
+    report = execute_command(_CELL_CHECK_COMMAND, input_data=cell)
     if report:
         logger.info(report)
     else:
         logger.info("No issues found. Code is clean.")
 
 
-def cell_check(cell: str) -> str | None:
-    fixed_code = execute_command(_CELL_CHECK_COMMAND, input_data=cell).strip()
+def cell_check_isort(cell: str) -> str | None:
+    fixed_code = execute_command(_CELL_CHECK_ISORT_COMMAND, input_data=cell).strip()
     if fixed_code.strip():
         return fixed_code.strip()
     return None
