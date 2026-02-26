@@ -7,7 +7,7 @@
 
 **`colablinter`** is an **IPython magic command extension** designed for Jupyter and Google Colab notebooks.
 
-It integrates the high-speed linter **`ruff`** to perform code quality checks and formats directly within Jupyter/Colab cells.
+It integrates the high-speed linter **`ruff`** to perform code quality checks and formatting directly within Jupyter/Colab cells.
 
 It allows developers to lint and format code on a **cell-by-cell** basis or the **entire notebook** with simple commands.
 
@@ -15,9 +15,9 @@ It allows developers to lint and format code on a **cell-by-cell** basis or the 
 
 | Command | Description |
 | :--- | :--- |
-| **`%%cformat`** | Fixes isort and Formats the current cell's code. |
+| **`%%cformat`** | Sorts imports and Formats the current cell's code. |
 | **`%%ccheck`** | Displays a linting report for the current cell. |
-| **`%clautoformat`** | Activates or deactivates automatic code isort fixing, formatting, and time check before every cell execution. |
+| **`%clautoformat`** | Activates or deactivates automatic import sorting, formatting, and execution time display before every cell. |
 | **`%clcheck`** | Displays a linting report for the **entire saved notebook** (requires Google Drive mount). |
 
 After executing a cell magic command, the checked/formatted code is immediately executed (if applicable), maintaining the notebook workflow.
@@ -31,16 +31,16 @@ pip install colablinter
 ```
 
 ## Usage
-The extension must be explicitly loaded in the notebook session before use. Once the extension is loaded, `%clautoformat` is triggered automatically.
+The extension must be explicitly loaded in the notebook session before use. Once the extension is loaded, `%clautoformat` is activated by default.
 
 ```python
 %load_ext colablinter
 ```
 
 
-1. Fix and Format cell (`%%cformat`)
+1. Sorts imports and Formats cell (`%%cformat`)
 
-    `%%cformat` corrects code and runs the formatter. The cell executes the fixed code.
+    `%%cformat` corrects code and runs the formatter. The cell executes after cell is formatted.
     ```python
     %%cformat
     import math, sys;
@@ -114,4 +114,4 @@ The extension must be explicitly loaded in the notebook session before use. Once
 
 ## Known Caveats & Troubleshooting
 
-Magic Command Execution: When using magic or terminal commands with `%clautoformat` on active, the autofix mechanism is temporarily suppressed during the final execution step to prevent infinite loops or dual checks. If you want to disable auto-fixing, use `%clautoformat off`
+Magic Command Execution: When using magic or terminal commands while `%clautoformat` is active, the auto-format mechanism is temporarily suppressed during the final execution step to prevent infinite loops or dual checks. If you want to disable auto-formatting, use `%clautoformat off`
