@@ -1,12 +1,13 @@
 import os
+import time
 
-from IPython.core.interactiveshell import ExecutionInfo
+from IPython.core.interactiveshell import ExecutionInfo, ExecutionResult
 from IPython.core.magic import Magics, cell_magic, line_magic, magics_class
 
 from colablinter.command import (
     cell_check,
+    cell_check_isort,
     cell_format,
-    cell_report,
     notebook_report,
 )
 from colablinter.logger import logger
@@ -36,20 +37,35 @@ def _ensure_drive_mounted():
         ) from e
 
 
+class CellTimer:
+    def __init__(self):
+        self.start_time = None
+
+    def start(self, info: ExecutionInfo | None = None):
+        self.start_time = time.perf_counter()
+
+    def stop(self, result: ExecutionResult | None = None):
+        if self.start_time:
+            duration = time.perf_counter() - self.start_time
+            logger.info(f"\033[92m✔ Done | {duration:.3f}s\033[0m")
+            self.start_time = None
+
+
 @magics_class
 class ColabLinterMagics(Magics):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self._is_autofix_active = False
+        self.timer = CellTimer()
 
     @cell_magic
-    def creport(self, line: str, cell: str) -> None:
+    def ccheck(self, line: str, cell: str) -> None:
         stripped_cell = cell.strip()
-        cell_report(stripped_cell)
+        cell_check(stripped_cell)
         self.__execute(stripped_cell)
 
     @cell_magic
-    def cfix(self, line: str, cell: str) -> None:
+    def cformat(self, line: str, cell: str) -> None:
         stripped_cell = cell.strip()
         if _is_invalid_cell(stripped_cell):
             logger.info(
@@ -58,7 +74,7 @@ class ColabLinterMagics(Magics):
             self.__execute(stripped_cell)
             return None
 
-        fixed_code = cell_check(stripped_cell)
+        fixed_code = cell_check_isort(stripped_cell)
         if fixed_code is None:
             logger.error("Linter check failed. Code not modified.")
             self.__execute(stripped_cell)
@@ -73,24 +89,21 @@ class ColabLinterMagics(Magics):
             self.__execute(fixed_code)
 
     @line_magic
-    def clautofix(self, line: str) -> None:
+    def clautoformat(self, line: str) -> None:
         action = line.strip().lower()
         if action == "on":
-            self.shell.events.register("pre_run_cell", self.__autofix)
+            self.__register()
             self._is_autofix_active = True
             logger.info("Auto-fix activated for pre-run cells.")
         elif action == "off":
-            try:
-                self.shell.events.unregister("pre_run_cell", self.__autofix)
-            except Exception:
-                pass
+            self.__unregister()
             self._is_autofix_active = False
             logger.info("Auto-fix deactivated.")
         else:
             logger.info("Usage: %clautofix on or %clautofix off.")
 
     @line_magic
-    def clreport(self, line: str) -> None:
+    def clcheck(self, line: str) -> None:
         _ensure_drive_mounted()
         notebook_path = line.strip().strip("'").strip('"')
         if not notebook_path:
@@ -118,20 +131,14 @@ class ColabLinterMagics(Magics):
                 "Autofix is temporarily suppressed to prevent dual execution. "
                 "To disable, run: %clautofix off"
             )
-            try:
-                self.shell.events.unregister("pre_run_cell", self.__autofix)
-            except ValueError:
-                pass
+            self.__unregister()
         try:
             self.shell.run_cell(cell, silent=False, store_history=True)
         except Exception as e:
             logger.exception(f"Code execution failed: {e}")
         finally:
             if self._is_autofix_active:
-                try:
-                    self.shell.events.register("pre_run_cell", self.__autofix)
-                except Exception:
-                    pass
+                self.__register()
 
     def __autofix(self, info: ExecutionInfo) -> None:
         stripped_cell = info.raw_cell.strip()
@@ -139,14 +146,36 @@ class ColabLinterMagics(Magics):
             logger.info("Autofix is skipped for cell with magic or terminal.")
             return None
 
-        fixed_code = cell_check(stripped_cell)
-        if fixed_code is None:
-            logger.error("Linter check failed during auto-fix.")
-            return None
-
-        formatted_code = cell_format(fixed_code)
+        formatted_code = cell_format(stripped_cell)
         if formatted_code is None:
             logger.error("Formatter failed during auto-fix.")
             return None
 
-        self.shell.set_next_input(formatted_code, replace=True)
+        fixed_code = cell_check_isort(formatted_code)
+        if fixed_code is None:
+            logger.error("Linter check failed during auto-fix.")
+            return None
+
+        self.shell.set_next_input(fixed_code, replace=True)
+
+    def __register(self) -> None:
+        for event, callback in [
+            ("pre_run_cell", self.__autofix),
+            ("pre_run_cell", self.timer.start),
+            ("post_run_cell", self.timer.stop),
+        ]:
+            try:
+                self.shell.events.register(event, callback)
+            except Exception:
+                pass
+
+    def __unregister(self) -> None:
+        for event, callback in [
+            ("pre_run_cell", self.__autofix),
+            ("pre_run_cell", self.timer.start),
+            ("post_run_cell", self.timer.stop),
+        ]:
+            try:
+                self.shell.events.unregister(event, callback)
+            except Exception:
+                pass

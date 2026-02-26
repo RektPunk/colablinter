@@ -11,14 +11,12 @@ repos:
     - id: check-merge-conflict
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.14.8
+  rev: v0.15.2
   hooks:
     - id: ruff-check
+      name: ruff check fix
       args: [ --fix ]
+    - id: ruff-check
+      name: ruff isort
+      args: [--select, I, --fix]
     - id: ruff-format
-
-- repo: https://github.com/pycqa/isort
-  rev: 7.0.0
-  hooks:
-    - id: isort
-      args: ["--profile", "black"]

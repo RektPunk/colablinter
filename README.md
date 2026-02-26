@@ -15,10 +15,10 @@ It allows developers to lint and format code on a **cell-by-cell** basis or chec
 
 | Command | Type | Description |
 | :--- | :--- | :--- |
-| **`%%cfix`** | Cell Magic | Fixes and Formats the current cell's code. |
-| **`%%creport`** | Cell Magic | Displays a linting report for the current cell. |
-| **`%clautofix`** | Line Magic | Activates or deactivates automatic code fixing and formatting before every cell execution. |
-| **`%clreport`** | Line Magic | Displays a linting report for the **entire saved notebook** (requires Google Drive mount). |
+| **`%%cformat`** | Cell Magic | Fixes isort and Formats the current cell's code. |
+| **`%%ccheck`** | Cell Magic | Displays a linting report for the current cell. |
+| **`%clautoformat`** | Line Magic | Activates or deactivates automatic code isort fixing, formatting, and time check before every cell execution. |
+| **`%clcheck`** | Line Magic | Displays a linting report for the **entire saved notebook** (requires Google Drive mount). |
 
 After executing a cell magic command, the fixed/reported code is immediately executed (if applicable), maintaining the notebook workflow.
 
@@ -31,18 +31,18 @@ pip install colablinter
 ```
 
 ## Usage
-The extension must be explicitly loaded in the notebook session before use. Once the extension is loaded, `%clautofix` is triggered automatically.
+The extension must be explicitly loaded in the notebook session before use. Once the extension is loaded, `%clautoformat` is triggered automatically.
 
 ```python
 %load_ext colablinter
 ```
 
 
-1. Fix and Format cell (`%%cfix`)
+1. Fix and Format cell (`%%cformat`)
 
-    `%%cfix` corrects code and runs the formatter. The cell executes the fixed code.
+    `%%cformat` corrects code and runs the formatter. The cell executes the fixed code.
     ```python
-    %%cfix
+    %%cformat
     import math, sys;
 
     class Example(   object ):
@@ -70,11 +70,11 @@ The extension must be explicitly loaded in the notebook session before use. Once
                 return (sys.path, some_string)
     ```
 
-2. Check cell quality (`%%creport`)
+2. Check cell quality (`%%ccheck`)
 
-    Use `%%creport` to see linting reports for the code below the command. After the report is displayed, the code in the cell executes as normal.
+    Use `%%ccheck` to see linting reports for the code below the command. After the report is displayed, the code in the cell executes as normal.
     ```python
-    %%creport
+    %%ccheck
 
     def invalid_code(x):
         return x + y # 'y' is not defined
@@ -95,23 +95,23 @@ The extension must be explicitly loaded in the notebook session before use. Once
     **Note on F401:**
     The linter is explicitly configured to **ignore F401 errors** (unused imports). This is to ensure compatibility with the stateful nature of Jupyter/Colab notebooks, where imports in one cell may be necessary for code execution in subsequent cells, preventing unintended breakage of the notebook's execution flow.
 
-3. Activate/Deactivate Auto Fix (`%clautofix`)
+3. Activate/Deactivate Auto Fix (`%clautoformat`)
 
-    The `%clautofix` line magic allows you to automatically fix code before every code cell is executed.
+    The `%clautoformat` line magic allows you to automatically fix code before every code cell is executed.
 
     To Activate Auto Fixing:
     ```python
-    %clautofix on # %clautofix off when you want to deactivate
+    %clautoformat on # %clautoformat off when you want to deactivate
     ```
 
-4. Check entire notebook (`%clreport`)
+4. Check entire notebook (`%clcheck`)
 
-    Use line magic `%clreport` to check across the entire saved notebook file (requires the notebook to be saved to Google Drive and mounted).
+    Use line magic `%clcheck` to check across the entire saved notebook file (requires the notebook to be saved to Google Drive and mounted).
 
     ```python
-    %clreport /content/drive/MyDrive/Colab Notebooks/path/to/notebook.ipynb
+    %clcheck /content/drive/MyDrive/Colab Notebooks/path/to/notebook.ipynb
     ```
 
 ## Known Caveats & Troubleshooting
 
-Magic Command Execution: When using magic or terminal commands with `%clautofix` on active, the autofix mechanism is temporarily suppressed during the final execution step to prevent infinite loops or dual checks. If you want to disable auto-fixing, use `%clautofix off`
+Magic Command Execution: When using magic or terminal commands with `%clautoformat` on active, the autofix mechanism is temporarily suppressed during the final execution step to prevent infinite loops or dual checks. If you want to disable auto-fixing, use `%clautoformat off`
