@@ -15,8 +15,8 @@ It allows developers to lint code on a **cell-by-cell** basis or the **entire no
 | :--- | :--- |
 | **`%%cformat`** | Sorts imports and Formats the current cell's code. |
 | **`%%ccheck`** | Displays a linting report for the current cell. |
-| **`%clautoformat`** | Activates or deactivates automatic import sorting, formatting, and execution time display before every cell. |
-| **`%clcheck`** | Displays a linting report for the **entire saved notebook** (requires Google Drive mount). |
+| **`%lautoformat`** | Activates or deactivates automatic import sorting, formatting, and execution time display before every cell. |
+| **`%lcheck`** | Displays a linting report for the **entire saved notebook** (requires Google Drive mount). |
 
 After executing a cell magic command, the checked/formatted code is immediately executed (if applicable), maintaining the notebook workflow.
 
@@ -29,7 +29,7 @@ pip install colablinter
 ```
 
 ## Usage
-The extension must be explicitly loaded in the notebook session before use. Once the extension is loaded, `%clautoformat` is activated by default.
+The extension must be explicitly loaded in the notebook session before use. Once the extension is loaded, `%lautoformat` is activated by default.
 
 ```python
 %load_ext colablinter
@@ -93,23 +93,23 @@ The extension must be explicitly loaded in the notebook session before use. Once
     **Note on F401:**
     The linter is explicitly configured to **ignore F401 errors** (unused imports). This is to ensure compatibility with the stateful nature of Jupyter/Colab notebooks, where imports in one cell may be necessary for code execution in subsequent cells, preventing unintended breakage of the notebook's execution flow.
 
-3. Activate/Deactivate Auto Fix (`%clautoformat`)
+3. Activate/Deactivate Auto Fix (`%lautoformat`)
 
-    The `%clautoformat` line magic allows you to automatically fix code before every code cell is executed.
+    The `%lautoformat` line magic allows you to automatically fix code before every code cell is executed.
 
     To Activate Auto Fixing:
     ```python
-    %clautoformat on # %clautoformat off when you want to deactivate
+    %lautoformat on # %lautoformat off when you want to deactivate
     ```
 
-4. Check entire notebook (`%clcheck`)
+4. Check entire notebook (`%lcheck`)
 
-    Use line magic `%clcheck` to check across the entire saved notebook file (requires the notebook to be saved to Google Drive and mounted).
+    Use line magic `%lcheck` to check across the entire saved notebook file (requires the notebook to be saved to Google Drive and mounted).
 
     ```python
-    %clcheck /content/drive/MyDrive/Colab Notebooks/path/to/notebook.ipynb
+    %lcheck /content/drive/MyDrive/Colab Notebooks/path/to/notebook.ipynb
     ```
 
 ## Known Caveats & Troubleshooting
 
-Magic Command Execution: When using magic or terminal commands while `%clautoformat` is active, the auto-format mechanism is temporarily suppressed during the final execution step to prevent infinite loops or dual checks. If you want to disable auto-formatting, use `%clautoformat off`
+Magic Command Execution: When using magic or terminal commands while `%lautoformat` is active, the auto-format mechanism is temporarily suppressed during the final execution step to prevent infinite loops or dual checks. If you want to disable auto-formatting, use `%lautoformat off`

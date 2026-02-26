@@ -89,7 +89,7 @@ class ColabLinterMagics(Magics):
             self.__execute(formatted_code)
 
     @line_magic
-    def clautoformat(self, line: str) -> None:
+    def lautoformat(self, line: str) -> None:
         action = line.strip().lower()
         if action == "on":
             self.__register()
@@ -100,10 +100,10 @@ class ColabLinterMagics(Magics):
             self._is_autoformat_active = False
             logger.info("Auto-format deactivated.")
         else:
-            logger.info("Usage: %clautoformat on or %clautoformat off.")
+            logger.info("Usage: %lautoformat on or %lautoformat off.")
 
     @line_magic
-    def clcheck(self, line: str) -> None:
+    def lcheck(self, line: str) -> None:
         _ensure_drive_mounted()
         notebook_path = line.strip().strip("'").strip('"')
         if not notebook_path:
@@ -129,7 +129,7 @@ class ColabLinterMagics(Magics):
         if self._is_autoformat_active:
             logger.info(
                 "autoformat is temporarily suppressed to prevent dual execution. "
-                "To disable, run: %clautoformat off"
+                "To disable, run: %lautoformat off"
             )
             self.__unregister()
         try:
