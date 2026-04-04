@@ -34,7 +34,6 @@ The extension must be explicitly loaded in the notebook session before use.
 ```python
 %load_ext colablinter
 ```
-[!TIP]
 Once loaded, `%clautoformat` is activated by default to keep your code clean from the start.
 
 
