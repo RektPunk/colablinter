@@ -1,46 +1,50 @@
-# colablinter
+<div style="text-align: center;">
+  <img src="https://capsule-render.vercel.app/api?type=transparent&fontColor=0047AB&text=colablinter&height=120&fontSize=90">
+</div>
+<p align="center">
+  <a href="https://github.com/RektPunk/colablinter/releases/latest">
+    <img alt="release" src="https://img.shields.io/github/v/release/RektPunk/colablinter.svg">
+  </a>
+</p>
 
-[![PyPI version](https://img.shields.io/pypi/v/colablinter.svg)](https://pypi.org/project/colablinter/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Overview
 
 **`colablinter`** is an **IPython magic command extension** designed for Jupyter and Google Colab notebooks.
 It integrates the high-speed linter **`ruff`** to perform code quality checks and formatting directly within Jupyter/Colab cells.
-It allows developers to lint code on a **cell-by-cell** basis or the **entire notebook** with simple commands.
+It allows developers to lint code on a **cell-by-cell** basis with simple commands.
 
 ## Magic cell Commands
 
 | Command | Description |
 | :--- | :--- |
-| **`%%cformat`** | Sorts imports and Formats the current cell's code. |
-| **`%%ccheck`** | Displays a linting report for the current cell. |
-| **`%lautoformat`** | Activates or deactivates automatic import sorting, formatting, and execution time display before every cell. |
-| **`%lcheck`** | Displays a linting report for the **entire saved notebook** (requires Google Drive mount). |
+| **`%clautoformat`** | Activates or deactivates automatic import sorting, formatting, and execution time display before every cell. |
+| **`%%clcheck`** | Displays a linting report for the current cell. |
 
 After executing a cell magic command, the checked/formatted code is immediately executed (if applicable), maintaining the notebook workflow.
 
 ## Installation
 
-Requires Python 3.10 or newer.
-
-```bash
-pip install colablinter
+Just run it in colab:
+```python
+!uv pip install colablinter
 ```
 
-## Usage
-The extension must be explicitly loaded in the notebook session before use. Once the extension is loaded, `%lautoformat` is activated by default.
-
+The extension must be explicitly loaded in the notebook session before use.
 ```python
 %load_ext colablinter
 ```
+[!TIP]
+Once loaded, `%clautoformat` is activated by default to keep your code clean from the start.
 
 
-1. Sorts imports and Formats cell (`%%cformat`)
+## Usage
 
-    `%%cformat` corrects code and runs the formatter. The cell executes after cell is formatted.
+1. Activate/Deactivate Auto Fix (`%clautoformat`)
+
+    The `%clautoformat` line magic allows you to automatically fix code before every code cell is executed.
+
     ```python
-    %%cformat
     import math, sys;
 
     class Example(   object ):
@@ -68,48 +72,37 @@ The extension must be explicitly loaded in the notebook session before use. Once
                 return (sys.path, some_string)
     ```
 
-2. Check cell quality (`%%ccheck`)
-
-    Use `%%ccheck` to see linting reports for the code below the command. After the report is displayed, the code in the cell executes as normal.
+    To deactivate auto fixing:
     ```python
-    %%ccheck
+    %clautoformat off # %clautoformat on when you want to activate
+    ```
+
+2. Check cell quality (`%%clcheck`)
+
+    Use `%%clcheck` to see linting reports for the code below the command. After the report is displayed, the code in the cell executes as normal.
+    ```python
+    %%clcheck
 
     def invalid_code(x):
-        return x + y # 'y' is not defined
+        return x + y
     ```
 
     Output:
     ```bash
     [ColabLinter:INFO] F821 Undefined name `y`
-    --> notebook_cell.py:2:16
-    |
+    --> tmp.py:2:16
+      |
     1 | def invalid_code(x):
-    2 |     return x + y # 'y' is not defined
-    |                  ^
-    |
-
+    2 |     return x + y
+      |                ^
+      |
     Found 1 error.
+    [ColabLinter:INFO] ✔ Done | 0.015s
     ```
     **Note on F401:**
     The linter is explicitly configured to **ignore F401 errors** (unused imports). This is to ensure compatibility with the stateful nature of Jupyter/Colab notebooks, where imports in one cell may be necessary for code execution in subsequent cells, preventing unintended breakage of the notebook's execution flow.
 
-3. Activate/Deactivate Auto Fix (`%lautoformat`)
-
-    The `%lautoformat` line magic allows you to automatically fix code before every code cell is executed.
-
-    To Activate Auto Fixing:
-    ```python
-    %lautoformat on # %lautoformat off when you want to deactivate
-    ```
-
-4. Check entire notebook (`%lcheck`)
-
-    Use line magic `%lcheck` to check across the entire saved notebook file (requires the notebook to be saved to Google Drive and mounted).
-
-    ```python
-    %lcheck /content/drive/MyDrive/Colab Notebooks/path/to/notebook.ipynb
-    ```
 
 ## Known Caveats & Troubleshooting
 
-Magic Command Execution: When using magic or terminal commands while `%lautoformat` is active, the auto-format mechanism is temporarily suppressed during the final execution step to prevent infinite loops or dual checks. If you want to disable auto-formatting, use `%lautoformat off`
+Magic Command Execution: When using magic or terminal commands while `%clautoformat` is active, the auto-format mechanism is temporarily suppressed during the final execution step to prevent infinite loops or dual checks. If you want to disable auto-formatting, use `%clautoformat off`

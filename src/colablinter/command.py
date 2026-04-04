@@ -2,16 +2,11 @@ import subprocess
 
 from colablinter.logger import logger
 
-_FILE_NAME = "notebook_cell.py"
-_RULESET = "F,E,I,B"
-_CELL_CHECK_COMMAND = (
-    f"ruff check --select {_RULESET} --ignore F401,E501 --stdin-filename={_FILE_NAME}"
+CELL_CHECK_COMMAND = (
+    "ruff check --select F,E,I,B --ignore F401,E501 --stdin-filename=tmp.py"
 )
-_CELL_CHECK_ISORT_COMMAND = f"ruff check --select I --stdin-filename={_FILE_NAME} --fix"
-_CELL_FORMAT_COMMAND = f"ruff format --stdin-filename={_FILE_NAME}"
-_NOTEBOOK_REPORT_COMMAND = (
-    f"ruff check --select {_RULESET} --ignore E501 '{{notebook_path}}'"
-)
+CELL_FIX_ISORT_COMMAND = "ruff check --select I --fix --stdin-filename=tmp.py"
+CELL_FORMAT_COMMAND = "ruff format --stdin-filename=tmp.py"
 
 
 def execute_command(command: str, input_data: str) -> str | None:
@@ -25,14 +20,6 @@ def execute_command(command: str, input_data: str) -> str | None:
             encoding="utf-8",
             check=False,
         )
-        if result.stderr:
-            stderr_content = result.stderr.strip()
-            if "Found" in stderr_content:
-                logger.warning(f"Linter: {stderr_content}")
-            elif "All checks passed" in stderr_content:
-                pass
-            else:
-                logger.error(f"Subprocess: {stderr_content}")
         return result.stdout.strip()
     except Exception as e:
         logger.exception(f"Error running command: {e}")
@@ -40,7 +27,7 @@ def execute_command(command: str, input_data: str) -> str | None:
 
 
 def cell_check(cell: str) -> None:
-    report = execute_command(_CELL_CHECK_COMMAND, input_data=cell)
+    report = execute_command(CELL_CHECK_COMMAND, input_data=cell)
     if report:
         logger.info(report)
     else:
@@ -48,21 +35,14 @@ def cell_check(cell: str) -> None:
 
 
 def cell_check_isort(cell: str) -> str | None:
-    fixed_code = execute_command(_CELL_CHECK_ISORT_COMMAND, input_data=cell).strip()
-    if fixed_code.strip():
+    fixed_code = execute_command(CELL_FIX_ISORT_COMMAND, input_data=cell)
+    if isinstance(fixed_code, str) and fixed_code.strip():
         return fixed_code.strip()
     return None
 
 
 def cell_format(cell: str) -> str | None:
-    formatted_code = execute_command(_CELL_FORMAT_COMMAND, input_data=cell)
-    if formatted_code.strip():
+    formatted_code = execute_command(CELL_FORMAT_COMMAND, input_data=cell)
+    if isinstance(formatted_code, str) and formatted_code.strip():
         return formatted_code.strip()
     return None
-
-
-def notebook_report(notebook_path: str) -> None:
-    return execute_command(
-        _NOTEBOOK_REPORT_COMMAND.format(notebook_path=notebook_path),
-        "",
-    )
