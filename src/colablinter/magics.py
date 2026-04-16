@@ -1,9 +1,11 @@
+import contextlib
+
 from IPython.core.interactiveshell import ExecutionInfo
 from IPython.core.magic import Magics, cell_magic, line_magic, magics_class
 
 from colablinter.command import (
     cell_check,
-    cell_check_isort,
+    cell_check_fix,
     cell_format,
 )
 from colablinter.logger import logger
@@ -72,7 +74,7 @@ class ColabLinterMagics(Magics):
             logger.error("Formatter failed during auto-format.")
             return None
 
-        fixed_code = cell_check_isort(formatted_code)
+        fixed_code = cell_check_fix(formatted_code)
         if fixed_code is None:
             logger.error("Linter check failed during auto-format.")
             return None
@@ -88,10 +90,8 @@ class ColabLinterMagics(Magics):
             ("pre_run_cell", self.timer.start),
             ("post_run_cell", self.timer.stop),
         ]:
-            try:
+            with contextlib.suppress(Exception):
                 self.shell.events.register(event, callback)
-            except Exception:
-                pass
 
     def __unregister(self) -> None:
         if self.shell is None:
@@ -102,7 +102,5 @@ class ColabLinterMagics(Magics):
             ("pre_run_cell", self.timer.start),
             ("post_run_cell", self.timer.stop),
         ]:
-            try:
-                self.shell.events.unregister(event, callback)
-            except Exception:
-                pass
+            with contextlib.suppress(Exception):
+                self.shell.events.register(event, callback)

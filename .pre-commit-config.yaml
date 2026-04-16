@@ -1,22 +1,19 @@
 repos:
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v6.0.0
-  hooks:
-    - id: trailing-whitespace
-    - id: end-of-file-fixer
-    - id: check-yaml
-    - id: check-json
-    - id: check-toml
-    - id: check-added-large-files
-    - id: check-merge-conflict
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-added-large-files
+      - id: check-merge-conflict
 
-- repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.15.9
-  hooks:
-    - id: ruff-check
-      name: ruff check fix
-      args: [ --fix ]
-    - id: ruff-check
-      name: ruff isort
-      args: [--select, I, --fix]
-    - id: ruff-format
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.10
+    hooks:
+      - id: ruff-check
+        name: ruff check fix
+        args: [--select, "B,E,F,I,UP,SIM", --fix, --ignore, E501]
+      - id: ruff-format
