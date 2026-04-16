@@ -3,9 +3,9 @@ import subprocess
 from colablinter.logger import logger
 
 CELL_CHECK_COMMAND = (
-    "ruff check --select F,E,I,B --ignore F401,E501 --stdin-filename=tmp.py"
+    "ruff check --select B,E,F,I,UP,SIM --ignore F401,E501 --stdin-filename=tmp.py"
 )
-CELL_FIX_ISORT_COMMAND = "ruff check --select I --fix --stdin-filename=tmp.py"
+CELL_CHECK_FIX_COMMAND = "ruff check --fix --select B,E,F,I,UP,SIM --ignore F401,E501 --stdin-filename=tmp.py"
 CELL_FORMAT_COMMAND = "ruff format --stdin-filename=tmp.py"
 
 
@@ -34,8 +34,8 @@ def cell_check(cell: str) -> None:
         logger.info("No issues found. Code is clean.")
 
 
-def cell_check_isort(cell: str) -> str | None:
-    fixed_code = execute_command(CELL_FIX_ISORT_COMMAND, input_data=cell)
+def cell_check_fix(cell: str) -> str | None:
+    fixed_code = execute_command(CELL_CHECK_FIX_COMMAND, input_data=cell)
     if isinstance(fixed_code, str) and fixed_code.strip():
         return fixed_code.strip()
     return None
