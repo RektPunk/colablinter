@@ -60,7 +60,7 @@ Once loaded, `%clautoformat` is activated by default to keep your code clean fro
     import sys
 
 
-    class Example(object):
+    class Example:
         def __init__(self, bar):
             if bar:
                 bar += 1
