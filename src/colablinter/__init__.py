@@ -8,7 +8,7 @@ try:
     def load_ipython_extension(ipython: InteractiveShell):
         ipython.register_magics(ColabLinterMagics)
         logger.info("All commands registered.")
-        ipython.run_line_magic("clautoformat", "on")
+        ipython.run_line_magic("clautofix", "on")
 
 except Exception as e:
     logger.exception(f"Initialization failed: {e}")
