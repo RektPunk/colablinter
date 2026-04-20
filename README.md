@@ -108,9 +108,11 @@ Once loaded, `%clautofix` is activated by default to keep your code clean from t
     %%clunsafefix
 
     def process_data(new_item, current_list=[]):
+        old_item = "redundant"
         if new_item:
             if isinstance(new_item, str):
                 current_list.append(new_item)
+
         if len(current_list) > 0:
             return True
         else:
@@ -124,6 +126,7 @@ Once loaded, `%clautofix` is activated by default to keep your code clean from t
             current_list = []
         if new_item and isinstance(new_item, str):
             current_list.append(new_item)
+
         return len(current_list) > 0
     ```
 
