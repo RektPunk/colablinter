@@ -6,8 +6,8 @@ CELL_CHECK_COMMAND = (
     "ruff check --select B,E,F,I,UP,SIM --ignore F401,E501 --stdin-filename=tmp.py"
 )
 CELL_CHECK_FIX_COMMAND = "ruff check --fix --select B,E,F,I,UP,SIM --ignore F401,E501 --stdin-filename=tmp.py"
-CELL_FORMAT_COMMAND = "ruff format --stdin-filename=tmp.py"
 CELL_CHECK_UNSAFE_FIX_COMMAND = "ruff check --fix --select B,E,F,I,UP,SIM --ignore F401,E501 --stdin-filename=tmp.py --unsafe-fixes"
+CELL_FORMAT_COMMAND = "ruff format --stdin-filename=tmp.py"
 
 
 def execute_command(command: str, input_data: str) -> str | None:
