@@ -7,6 +7,7 @@ CELL_CHECK_COMMAND = (
 )
 CELL_CHECK_FIX_COMMAND = "ruff check --fix --select B,E,F,I,UP,SIM --ignore F401,E501 --stdin-filename=tmp.py"
 CELL_FORMAT_COMMAND = "ruff format --stdin-filename=tmp.py"
+CELL_CHECK_UNSAFE_FIX_COMMAND = "ruff check --fix --select B,E,F,I,UP,SIM --ignore F401,E501 --stdin-filename=tmp.py --unsafe-fixes"
 
 
 def execute_command(command: str, input_data: str) -> str | None:
@@ -36,6 +37,13 @@ def cell_check(cell: str) -> None:
 
 def cell_check_fix(cell: str) -> str | None:
     fixed_code = execute_command(CELL_CHECK_FIX_COMMAND, input_data=cell)
+    if isinstance(fixed_code, str) and fixed_code.strip():
+        return fixed_code.strip()
+    return None
+
+
+def cell_check_unsafe_fix(cell: str) -> str | None:
+    fixed_code = execute_command(CELL_CHECK_UNSAFE_FIX_COMMAND, input_data=cell)
     if isinstance(fixed_code, str) and fixed_code.strip():
         return fixed_code.strip()
     return None
