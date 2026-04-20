@@ -117,7 +117,7 @@ Once loaded, `%clautofix` is activated by default to keep your code clean from t
             return False
     ```
 
-    Output:
+    Fixed Cell:
     ```python
     def process_data(new_item, current_list=None):
         if current_list is None:
