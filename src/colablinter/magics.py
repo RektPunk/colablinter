@@ -27,19 +27,6 @@ class ColabLinterMagics(Magics):
         self.__execute(stripped_cell)
 
     @cell_magic
-    def clfix(self, line: str, cell: str) -> None:
-        if self.shell is None:
-            raise Exception
-
-        stripped_cell = cell.strip()
-        fixed_code = cell_check_fix(stripped_cell)
-        if fixed_code:
-            self.__execute(fixed_code)
-            self.shell.set_next_input(fixed_code, replace=True)
-        else:
-            self.__execute(stripped_cell)
-
-    @cell_magic
     def clunsafefix(self, line: str, cell: str) -> None:
         if self.shell is None:
             raise Exception
