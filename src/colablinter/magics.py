@@ -84,17 +84,17 @@ class ColabLinterMagics(Magics):
         if stripped_cell.startswith(("%", "!")) or stripped_cell == "":
             return None
 
-        formatted_code = cell_format(stripped_cell)
-        if formatted_code is None:
-            logger.error("Formatter failed during auto-format.")
-            return None
-
-        fixed_code = cell_check_fix(formatted_code)
+        fixed_code = cell_check_fix(stripped_cell)
         if fixed_code is None:
             logger.error("Linter check failed during auto-format.")
             return None
 
-        self.shell.set_next_input(fixed_code, replace=True)
+        formatted_code = cell_format(fixed_code)
+        if formatted_code is None:
+            logger.error("Formatter failed during auto-format.")
+            return None
+
+        self.shell.set_next_input(formatted_code, replace=True)
 
     def __register(self) -> None:
         if self.shell is None:
