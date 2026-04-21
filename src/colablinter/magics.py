@@ -29,7 +29,7 @@ class ColabLinterMagics(Magics):
     @cell_magic
     def clunsafefix(self, line: str, cell: str) -> None:
         if self.shell is None:
-            raise Exception
+            raise RuntimeError("IPython shell is not initialized.")
 
         stripped_cell = cell.strip()
         fixed_code = cell_check_unsafe_fix(stripped_cell)
@@ -54,6 +54,9 @@ class ColabLinterMagics(Magics):
             logger.info("Usage: %clautofix on or %clautofix off.")
 
     def __execute(self, cell: str) -> None:
+        if self.shell is None:
+            raise RuntimeError("IPython shell is not initialized.")
+
         if self._is_autofix_active:
             logger.info(
                 "autofix is temporarily suppressed to prevent dual execution. "
@@ -62,8 +65,6 @@ class ColabLinterMagics(Magics):
             self.__unregister()
 
         try:
-            if self.shell is None:
-                raise Exception
             self.shell.run_cell(cell, silent=False, store_history=True)
         except Exception as e:
             logger.exception(f"Code execution failed: {e}")
