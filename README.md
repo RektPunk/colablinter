@@ -98,7 +98,6 @@ Once loaded, `%clautofix` is activated by default to keep your code clean from t
       |                ^
       |
     Found 1 error.
-    [ColabLinter:INFO] ✔ Done | 0.015s
     ```
 
 3. Unsafe Fix (`%%clunsafefix`)
