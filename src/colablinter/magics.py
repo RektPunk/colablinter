@@ -18,16 +18,22 @@ class ColabLinterMagics(Magics):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._is_autofix_active = True
+        self._is_processing = False
         self.timer = CellTimer()
 
     @cell_magic
     def clcheck(self, line: str, cell: str) -> None:
+        if self._is_processing:
+            return
         stripped_cell = cell.strip()
         cell_check(stripped_cell)
         self.__execute(stripped_cell)
 
     @cell_magic
     def clunsafefix(self, line: str, cell: str) -> None:
+        if self._is_processing:
+            return
+
         if self.shell is None:
             raise RuntimeError("IPython shell is not initialized.")
 
@@ -57,6 +63,9 @@ class ColabLinterMagics(Magics):
         if self.shell is None:
             raise RuntimeError("IPython shell is not initialized.")
 
+        if self._is_processing:
+            return
+
         if self._is_autofix_active:
             logger.info(
                 "autofix is temporarily suppressed to prevent dual execution. "
@@ -64,15 +73,20 @@ class ColabLinterMagics(Magics):
             )
             self.__unregister()
 
+        self._is_processing = True
         try:
-            self.shell.run_cell(cell, silent=False, store_history=True)
+            self.shell.run_cell(cell, silent=False, store_history=False)
         except Exception as e:
             logger.exception(f"Code execution failed: {e}")
         finally:
+            self._is_processing = False
             if self._is_autofix_active:
                 self.__register()
 
     def __autofix(self, info: ExecutionInfo) -> None:
+        if self._is_processing or not self._is_autofix_active:
+            return None
+
         if (
             self.shell is None
             or info.raw_cell is None
@@ -100,6 +114,7 @@ class ColabLinterMagics(Magics):
         if self.shell is None:
             return None
 
+        self.__unregister()
         for event, callback in [
             ("pre_run_cell", self.__autofix),
             ("pre_run_cell", self.timer.start),
@@ -112,6 +127,7 @@ class ColabLinterMagics(Magics):
         if self.shell is None:
             return None
 
+        self.timer.start_time = None
         for event, callback in [
             ("pre_run_cell", self.__autofix),
             ("pre_run_cell", self.timer.start),
