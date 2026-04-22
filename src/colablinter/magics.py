@@ -18,16 +18,22 @@ class ColabLinterMagics(Magics):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._is_autofix_active = True
+        self._is_processing = False
         self.timer = CellTimer()
 
     @cell_magic
     def clcheck(self, line: str, cell: str) -> None:
+        if self._is_processing:
+            return None
         stripped_cell = cell.strip()
         cell_check(stripped_cell)
         self.__execute(stripped_cell)
 
     @cell_magic
     def clunsafefix(self, line: str, cell: str) -> None:
+        if self._is_processing:
+            return None
+
         if self.shell is None:
             raise RuntimeError("IPython shell is not initialized.")
 
@@ -54,6 +60,9 @@ class ColabLinterMagics(Magics):
             logger.info("Usage: %clautofix on or %clautofix off.")
 
     def __execute(self, cell: str) -> None:
+        if self._is_processing:
+            return None
+
         if self.shell is None:
             raise RuntimeError("IPython shell is not initialized.")
 
@@ -64,15 +73,20 @@ class ColabLinterMagics(Magics):
             )
             self.__unregister()
 
+        self._is_processing = True
         try:
-            self.shell.run_cell(cell, silent=False, store_history=True)
+            self.shell.run_cell(cell, silent=False, store_history=False)
         except Exception as e:
             logger.exception(f"Code execution failed: {e}")
         finally:
+            self._is_processing = False
             if self._is_autofix_active:
                 self.__register()
 
     def __autofix(self, info: ExecutionInfo) -> None:
+        if self._is_processing or not self._is_autofix_active:
+            return None
+
         if (
             self.shell is None
             or info.raw_cell is None
@@ -84,22 +98,23 @@ class ColabLinterMagics(Magics):
         if stripped_cell.startswith(("%", "!")) or stripped_cell == "":
             return None
 
-        formatted_code = cell_format(stripped_cell)
-        if formatted_code is None:
-            logger.error("Formatter failed during auto-format.")
-            return None
-
-        fixed_code = cell_check_fix(formatted_code)
+        fixed_code = cell_check_fix(stripped_cell)
         if fixed_code is None:
             logger.error("Linter check failed during auto-format.")
             return None
 
-        self.shell.set_next_input(fixed_code, replace=True)
+        formatted_code = cell_format(fixed_code)
+        if formatted_code is None:
+            logger.error("Formatter failed during auto-format.")
+            return None
+
+        self.shell.set_next_input(formatted_code, replace=True)
 
     def __register(self) -> None:
         if self.shell is None:
-            return None
+            raise RuntimeError("IPython shell is not initialized.")
 
+        self.__unregister()
         for event, callback in [
             ("pre_run_cell", self.__autofix),
             ("pre_run_cell", self.timer.start),
@@ -110,8 +125,9 @@ class ColabLinterMagics(Magics):
 
     def __unregister(self) -> None:
         if self.shell is None:
-            return None
+            raise RuntimeError("IPython shell is not initialized.")
 
+        self.timer.start_time = None
         for event, callback in [
             ("pre_run_cell", self.__autofix),
             ("pre_run_cell", self.timer.start),
