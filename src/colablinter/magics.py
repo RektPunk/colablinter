@@ -24,7 +24,7 @@ class ColabLinterMagics(Magics):
     @cell_magic
     def clcheck(self, line: str, cell: str) -> None:
         if self._is_processing:
-            return
+            return None
         stripped_cell = cell.strip()
         cell_check(stripped_cell)
         self.__execute(stripped_cell)
@@ -32,7 +32,7 @@ class ColabLinterMagics(Magics):
     @cell_magic
     def clunsafefix(self, line: str, cell: str) -> None:
         if self._is_processing:
-            return
+            return None
 
         if self.shell is None:
             raise RuntimeError("IPython shell is not initialized.")
@@ -60,11 +60,11 @@ class ColabLinterMagics(Magics):
             logger.info("Usage: %clautofix on or %clautofix off.")
 
     def __execute(self, cell: str) -> None:
+        if self._is_processing:
+            return None
+
         if self.shell is None:
             raise RuntimeError("IPython shell is not initialized.")
-
-        if self._is_processing:
-            return
 
         if self._is_autofix_active:
             logger.info(
@@ -112,7 +112,7 @@ class ColabLinterMagics(Magics):
 
     def __register(self) -> None:
         if self.shell is None:
-            return None
+            raise RuntimeError("IPython shell is not initialized.")
 
         self.__unregister()
         for event, callback in [
@@ -125,7 +125,7 @@ class ColabLinterMagics(Magics):
 
     def __unregister(self) -> None:
         if self.shell is None:
-            return None
+            raise RuntimeError("IPython shell is not initialized.")
 
         self.timer.start_time = None
         for event, callback in [
