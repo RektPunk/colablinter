@@ -66,14 +66,10 @@ class ColabLinterMagics(Magics):
         if self.shell is None:
             raise RuntimeError("IPython shell is not initialized.")
 
+        self._is_processing = True
         if self._is_autofix_active:
-            logger.info(
-                "autofix is temporarily suppressed to prevent dual execution. "
-                "To disable, run: %clautofix off"
-            )
             self.__unregister()
 
-        self._is_processing = True
         try:
             self.shell.run_cell(cell, silent=False, store_history=False)
         except Exception as e:
@@ -95,7 +91,14 @@ class ColabLinterMagics(Magics):
             return None
 
         stripped_cell = info.raw_cell.strip()
-        if stripped_cell.startswith(("%", "!")) or stripped_cell == "":
+        if stripped_cell == "":
+            return None
+
+        if stripped_cell.startswith(("%", "!")):
+            logger.info(
+                "Autofix skipped: System or Magic command detected. "
+                "To disable autofix, run: %clautofix off"
+            )
             return None
 
         fixed_code = cell_check_fix(stripped_cell)
