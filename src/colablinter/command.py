@@ -5,37 +5,45 @@ from colablinter.logger import logger
 CELL_CHECK_COMMAND = [
     "ruff",
     "check",
+    "--quiet",
     "--select",
     "B,E,F,I,UP,SIM",
     "--ignore",
     "F401,E501",
     "--stdin-filename=tmp.py",
+    "-",
 ]
 CELL_CHECK_FIX_COMMAND = [
     "ruff",
     "check",
     "--fix",
+    "--quiet",
     "--select",
     "B,E,F,I,UP,SIM",
     "--ignore",
     "F401,E501",
     "--stdin-filename=tmp.py",
+    "-",
 ]
 CELL_CHECK_UNSAFE_FIX_COMMAND = [
     "ruff",
     "check",
     "--fix",
     "--unsafe-fixes",
+    "--quiet",
     "--select",
     "B,E,F,I,UP,SIM",
     "--ignore",
     "F401,E501",
     "--stdin-filename=tmp.py",
+    "-",
 ]
 CELL_FORMAT_COMMAND = [
     "ruff",
     "format",
+    "--quiet",
     "--stdin-filename=tmp.py",
+    "-",
 ]
 
 

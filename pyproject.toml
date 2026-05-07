@@ -21,3 +21,8 @@ dependencies = [
 
 [project.urls]
 repository = "https://github.com/RektPunk/colablinter"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+]
