@@ -1,14 +1,6 @@
 <div style="text-align: center;">
   <img src="https://capsule-render.vercel.app/api?type=transparent&fontColor=0047AB&text=colablinter&height=120&fontSize=90">
 </div>
-<p align="center">
-  <a href="https://github.com/RektPunk/colablinter/releases/latest">
-    <img alt="release" src="https://img.shields.io/github/v/release/RektPunk/colablinter.svg">
-  </a>
-</p>
-
-
-## Overview
 
 **`colablinter`** is an **IPython magic command extension** designed for Jupyter and Google Colab notebooks.
 It integrates the high-speed linter **`ruff`** to perform code quality checks and formatting directly within Jupyter/Colab cells.
