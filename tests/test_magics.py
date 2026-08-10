@@ -63,7 +63,7 @@ def test_autofix_event_integration(magics, monkeypatch):
 
     magics.clautofix("on")
     info = ExecutionInfo("x=1+2", False, False, True, "cell_id")
-    magics._ColabLinterMagics__autofix(info)
+    magics._autofix(info)
 
     assert len(next_inputs) == 1
     assert "x = 1 + 2" in next_inputs[0]

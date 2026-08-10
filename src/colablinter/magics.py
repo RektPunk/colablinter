@@ -17,22 +17,27 @@ from colablinter.timer import CellTimer
 class ColabLinterMagics(Magics):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.timer = CellTimer()
         self._is_autofix_active = True
         self._is_processing = False
-        self.timer = CellTimer()
+        self._events = (
+            ("pre_run_cell", self._autofix),
+            ("pre_run_cell", self.timer.start),
+            ("post_run_cell", self.timer.stop),
+        )
 
     @cell_magic
     def clcheck(self, line: str, cell: str) -> None:
         if self._is_processing:
-            return None
+            return
         stripped_cell = cell.strip()
         cell_check(stripped_cell)
-        self.__execute(stripped_cell)
+        self._execute(stripped_cell)
 
     @cell_magic
     def clunsafefix(self, line: str, cell: str) -> None:
         if self._is_processing:
-            return None
+            return
 
         if self.shell is None:
             raise RuntimeError("IPython shell is not initialized.")
@@ -40,101 +45,91 @@ class ColabLinterMagics(Magics):
         stripped_cell = cell.strip()
         fixed_code = cell_check_unsafe_fix(stripped_cell)
         if fixed_code:
-            self.__execute(fixed_code)
+            self._execute(fixed_code)
             self.shell.set_next_input(fixed_code, replace=True)
         else:
-            self.__execute(stripped_cell)
+            self._execute(stripped_cell)
 
     @line_magic
     def clautofix(self, line: str) -> None:
         action = line.strip().lower()
         if action == "on":
-            self.__register()
             self._is_autofix_active = True
+            self._register()
             logger.info("Auto-fix activated for pre-run cells.")
         elif action == "off":
-            self.__unregister()
             self._is_autofix_active = False
+            self._unregister()
             logger.info("Auto-fix deactivated.")
         else:
             logger.info("Usage: %clautofix on or %clautofix off.")
 
-    def __execute(self, cell: str) -> None:
+    def _execute(self, cell: str) -> None:
         if self._is_processing:
-            return None
+            return
 
         if self.shell is None:
             raise RuntimeError("IPython shell is not initialized.")
 
         self._is_processing = True
         if self._is_autofix_active:
-            self.__unregister()
+            self._unregister()
 
         try:
             self.shell.run_cell(cell, silent=False, store_history=False)
-        except Exception as e:
-            logger.exception(f"Code execution failed: {e}")
         finally:
             self._is_processing = False
             if self._is_autofix_active:
-                self.__register()
+                self._register()
 
-    def __autofix(self, info: ExecutionInfo) -> None:
+    def _autofix(self, info: ExecutionInfo) -> None:
         if self._is_processing or not self._is_autofix_active:
-            return None
+            return
 
         if (
             self.shell is None
             or info.raw_cell is None
             or not isinstance(info.raw_cell, str)
         ):
-            return None
+            return
 
         stripped_cell = info.raw_cell.strip()
         if stripped_cell == "":
-            return None
+            return
 
         if stripped_cell.startswith(("%", "!")):
             logger.info(
                 "Autofix skipped: System or Magic command detected. "
                 "To disable autofix, run: %clautofix off"
             )
-            return None
+            return
 
         fixed_code = cell_check_fix(stripped_cell)
         if fixed_code is None:
             logger.error("Linter check failed during auto-format.")
-            return None
+            return
 
         formatted_code = cell_format(fixed_code)
         if formatted_code is None:
             logger.error("Formatter failed during auto-format.")
-            return None
+            return
 
         self.shell.set_next_input(formatted_code, replace=True)
 
-    def __register(self) -> None:
+    def _register(self) -> None:
         if self.shell is None:
             raise RuntimeError("IPython shell is not initialized.")
 
-        self.__unregister()
-        for event, callback in [
-            ("pre_run_cell", self.__autofix),
-            ("pre_run_cell", self.timer.start),
-            ("post_run_cell", self.timer.stop),
-        ]:
+        self._unregister()
+        for event, callback in self._events:
             with contextlib.suppress(Exception):
                 self.shell.events.register(event, callback)
 
-    def __unregister(self) -> None:
+    def _unregister(self) -> None:
         if self.shell is None:
             raise RuntimeError("IPython shell is not initialized.")
 
         self.timer.start_time = None
-        for event, callback in [
-            ("pre_run_cell", self.__autofix),
-            ("pre_run_cell", self.timer.start),
-            ("post_run_cell", self.timer.stop),
-        ]:
+        for event, callback in self._events:
             with contextlib.suppress(Exception):
                 self.shell.events.unregister(event, callback)

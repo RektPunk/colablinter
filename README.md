@@ -9,10 +9,10 @@ It allows developers to lint code on a **cell-by-cell** basis with simple comman
 
 ## Magic cell Commands
 
-| Command | Description |
-| :--- | :--- |
-| **`%clautofix`** | Activates or deactivates automatic fix including import sorting, formatting, and execution time display before every cell. |
-| **`%%clcheck`** | Displays a linting report for the current cell. |
+| Command             | Description                                                                                                                  |
+| :------------------ | :--------------------------------------------------------------------------------------------------------------------------- |
+| **`%clautofix`**    | Activates or deactivates automatic fix including import sorting, formatting, and execution time display before every cell.   |
+| **`%%clcheck`**     | Displays a linting report for the current cell.                                                                              |
 | **`%%clunsafefix`** | Performs a linting check and applies "unsafe" fixes that might change code logic (e.g., changing mutable default arguments). |
 
 After executing a cell magic command, the checked/formatted code is immediately executed (if applicable), maintaining the notebook workflow.
@@ -20,108 +20,114 @@ After executing a cell magic command, the checked/formatted code is immediately 
 ## Installation
 
 Just run it in colab:
+
 ```python
 !uv pip install colablinter
 ```
 
 The extension must be explicitly loaded in the notebook session before use.
+
 ```python
 %load_ext colablinter
 ```
-Once loaded, `%clautofix` is activated by default to keep your code clean from the start.
 
+Once loaded, `%clautofix` is activated by default to keep your code clean from the start.
 
 ## Usage
 
 1. Activate/Deactivate Auto Fix (`%clautofix`)
 
-    The `%clautofix` line magic allows you to automatically fix code before every code cell is executed.
+   The `%clautofix` line magic allows you to automatically fix code before every code cell is executed.
 
-    ```python
-    import math, sys;
+   ```python
+   import math, sys;
 
-    class Example(   object ):
-        def __init__    ( self, bar ):
-          if bar : bar+=1;  bar=bar* bar   ; return bar
-          else:
-                        some_string = "foo"
-                        return (sys.path, some_string)
-    ```
+   class Example(   object ):
+       def __init__    ( self, bar ):
+         if bar : bar+=1;  bar=bar* bar   ; return bar
+         else:
+                       some_string = "foo"
+                       return (sys.path, some_string)
+   ```
 
-    Fixed Cell:
-    ```python
-    import math
-    import sys
+   Fixed Cell:
+
+   ```python
+   import math
+   import sys
 
 
-    class Example:
-        def __init__(self, bar):
-            if bar:
-                bar += 1
-                bar = bar * bar
-                return bar
-            else:
-                some_string = "foo"
-                return (sys.path, some_string)
-    ```
+   class Example:
+       def __init__(self, bar):
+           if bar:
+               bar += 1
+               bar = bar * bar
+               return bar
+           else:
+               some_string = "foo"
+               return (sys.path, some_string)
+   ```
 
-    To deactivate auto fixing:
-    ```python
-    %clautofix off # %clautofix on when you want to activate
-    ```
+   To deactivate auto fixing:
+
+   ```python
+   %clautofix off # %clautofix on when you want to activate
+   ```
 
 2. Check cell quality (`%%clcheck`)
 
-    Use `%%clcheck` to see linting reports for the code below the command. After the report is displayed, the code in the cell executes as normal.
-    ```python
-    %%clcheck
+   Use `%%clcheck` to see linting reports for the code below the command. After the report is displayed, the code in the cell executes as normal.
 
-    def invalid_code(x):
-        return x + y
-    ```
+   ```python
+   %%clcheck
 
-    Output:
-    ```bash
-    [ColabLinter:INFO] F821 Undefined name `y`
-    --> tmp.py:2:16
-      |
-    1 | def invalid_code(x):
-    2 |     return x + y
-      |                ^
-      |
-    Found 1 error.
-    ```
+   def invalid_code(x):
+       return x + y
+   ```
+
+   Output:
+
+   ```bash
+   [ColabLinter:INFO] F821 Undefined name `y`
+   --> tmp.py:2:16
+     |
+   1 | def invalid_code(x):
+   2 |     return x + y
+     |                ^
+     |
+   Found 1 error.
+   ```
 
 3. Unsafe Fix (`%%clunsafefix`)
 
-    Use `%%clunsafefix` when you want `ruff` to aggressively clean up your code, including rules that are typically considered risky (like fixing mutable default arguments or complex refactoring).
+   Use `%%clunsafefix` when you want `ruff` to aggressively clean up your code, including rules that are typically considered risky (like fixing mutable default arguments or complex refactoring).
 
-    ```python
-    %%clunsafefix
+   ```python
+   %%clunsafefix
 
-    def process_data(new_item, current_list=[]):
-        old_item = "redundant"
-        if new_item:
-            if isinstance(new_item, str):
-                current_list.append(new_item)
+   def process_data(new_item, current_list=[]):
+       old_item = "redundant"
+       if new_item:
+           if isinstance(new_item, str):
+               current_list.append(new_item)
 
-        if len(current_list) > 0:
-            return True
-        else:
-            return False
-    ```
+       if len(current_list) > 0:
+           return True
+       else:
+           return False
+   ```
 
-    Fixed Cell:
-    ```python
-    def process_data(new_item, current_list=None):
-        if current_list is None:
-            current_list = []
-        if new_item and isinstance(new_item, str):
-            current_list.append(new_item)
+   Fixed Cell:
 
-        return len(current_list) > 0
-    ```
+   ```python
+   def process_data(new_item, current_list=None):
+       if current_list is None:
+           current_list = []
+       if new_item and isinstance(new_item, str):
+           current_list.append(new_item)
 
+       return len(current_list) > 0
+   ```
 
 ## Known Caveats & Troubleshooting
 

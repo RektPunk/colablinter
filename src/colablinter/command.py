@@ -58,36 +58,31 @@ def execute_command(command: list[str], input_data: str) -> str | None:
             encoding="utf-8",
             check=False,
         )
-        return result.stdout.strip()
-    except Exception as e:
-        logger.exception(f"Error running command: {e}")
-        return None
+    except (subprocess.SubprocessError, OSError):
+        logger.exception("Error running command.")
+        return
+
+    return result.stdout
 
 
 def cell_check(cell: str) -> None:
     report = execute_command(CELL_CHECK_COMMAND, input_data=cell)
-    if report:
-        logger.info(report)
+    if report and report.strip():
+        logger.info(report.strip())
     else:
         logger.info("No issues found. Code is clean.")
 
 
 def cell_check_fix(cell: str) -> str | None:
-    fixed_code = execute_command(CELL_CHECK_FIX_COMMAND, input_data=cell)
-    if isinstance(fixed_code, str) and fixed_code.strip():
-        return fixed_code.strip()
-    return None
+    result = execute_command(CELL_CHECK_FIX_COMMAND, input_data=cell)
+    return result.strip() if result and result.strip() else None
 
 
 def cell_check_unsafe_fix(cell: str) -> str | None:
-    fixed_code = execute_command(CELL_CHECK_UNSAFE_FIX_COMMAND, input_data=cell)
-    if isinstance(fixed_code, str) and fixed_code.strip():
-        return fixed_code.strip()
-    return None
+    result = execute_command(CELL_CHECK_UNSAFE_FIX_COMMAND, input_data=cell)
+    return result.strip() if result and result.strip() else None
 
 
 def cell_format(cell: str) -> str | None:
-    formatted_code = execute_command(CELL_FORMAT_COMMAND, input_data=cell)
-    if isinstance(formatted_code, str) and formatted_code.strip():
-        return formatted_code.strip()
-    return None
+    result = execute_command(CELL_FORMAT_COMMAND, input_data=cell)
+    return result.strip() if result and result.strip() else None
