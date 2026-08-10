@@ -31,6 +31,3 @@ build-backend = "uv_build"
 
 [tool.ruff]
 exclude = ["README.md"]
-
-[tool.ruff.lint]
-ignore = ["BLE001"]

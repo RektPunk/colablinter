@@ -21,7 +21,7 @@ class ColabLinterMagics(Magics):
         self._is_autofix_active = True
         self._is_processing = False
         self._events = (
-            ("pre_run_cell", self.__autofix),
+            ("pre_run_cell", self._autofix),
             ("pre_run_cell", self.timer.start),
             ("post_run_cell", self.timer.stop),
         )
@@ -32,7 +32,7 @@ class ColabLinterMagics(Magics):
             return
         stripped_cell = cell.strip()
         cell_check(stripped_cell)
-        self.__execute(stripped_cell)
+        self._execute(stripped_cell)
 
     @cell_magic
     def clunsafefix(self, line: str, cell: str) -> None:
@@ -45,26 +45,26 @@ class ColabLinterMagics(Magics):
         stripped_cell = cell.strip()
         fixed_code = cell_check_unsafe_fix(stripped_cell)
         if fixed_code:
-            self.__execute(fixed_code)
+            self._execute(fixed_code)
             self.shell.set_next_input(fixed_code, replace=True)
         else:
-            self.__execute(stripped_cell)
+            self._execute(stripped_cell)
 
     @line_magic
     def clautofix(self, line: str) -> None:
         action = line.strip().lower()
         if action == "on":
             self._is_autofix_active = True
-            self.__register()
+            self._register()
             logger.info("Auto-fix activated for pre-run cells.")
         elif action == "off":
             self._is_autofix_active = False
-            self.__unregister()
+            self._unregister()
             logger.info("Auto-fix deactivated.")
         else:
             logger.info("Usage: %clautofix on or %clautofix off.")
 
-    def __execute(self, cell: str) -> None:
+    def _execute(self, cell: str) -> None:
         if self._is_processing:
             return
 
@@ -73,18 +73,16 @@ class ColabLinterMagics(Magics):
 
         self._is_processing = True
         if self._is_autofix_active:
-            self.__unregister()
+            self._unregister()
 
         try:
             self.shell.run_cell(cell, silent=False, store_history=False)
-        except Exception as e:
-            logger.exception(f"Code execution failed: {e}")
         finally:
             self._is_processing = False
             if self._is_autofix_active:
-                self.__register()
+                self._register()
 
-    def __autofix(self, info: ExecutionInfo) -> None:
+    def _autofix(self, info: ExecutionInfo) -> None:
         if self._is_processing or not self._is_autofix_active:
             return
 
@@ -118,16 +116,16 @@ class ColabLinterMagics(Magics):
 
         self.shell.set_next_input(formatted_code, replace=True)
 
-    def __register(self) -> None:
+    def _register(self) -> None:
         if self.shell is None:
             raise RuntimeError("IPython shell is not initialized.")
 
-        self.__unregister()
+        self._unregister()
         for event, callback in self._events:
             with contextlib.suppress(Exception):
                 self.shell.events.register(event, callback)
 
-    def __unregister(self) -> None:
+    def _unregister(self) -> None:
         if self.shell is None:
             raise RuntimeError("IPython shell is not initialized.")
 
