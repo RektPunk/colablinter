@@ -17,9 +17,14 @@ from colablinter.timer import CellTimer
 class ColabLinterMagics(Magics):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.timer = CellTimer()
         self._is_autofix_active = True
         self._is_processing = False
-        self.timer = CellTimer()
+        self._events = (
+            ("pre_run_cell", self.__autofix),
+            ("pre_run_cell", self.timer.start),
+            ("post_run_cell", self.timer.stop),
+        )
 
     @cell_magic
     def clcheck(self, line: str, cell: str) -> None:
@@ -49,12 +54,12 @@ class ColabLinterMagics(Magics):
     def clautofix(self, line: str) -> None:
         action = line.strip().lower()
         if action == "on":
-            self.__register()
             self._is_autofix_active = True
+            self.__register()
             logger.info("Auto-fix activated for pre-run cells.")
         elif action == "off":
-            self.__unregister()
             self._is_autofix_active = False
+            self.__unregister()
             logger.info("Auto-fix deactivated.")
         else:
             logger.info("Usage: %clautofix on or %clautofix off.")
@@ -118,11 +123,7 @@ class ColabLinterMagics(Magics):
             raise RuntimeError("IPython shell is not initialized.")
 
         self.__unregister()
-        for event, callback in [
-            ("pre_run_cell", self.__autofix),
-            ("pre_run_cell", self.timer.start),
-            ("post_run_cell", self.timer.stop),
-        ]:
+        for event, callback in self._events:
             with contextlib.suppress(Exception):
                 self.shell.events.register(event, callback)
 
@@ -131,10 +132,6 @@ class ColabLinterMagics(Magics):
             raise RuntimeError("IPython shell is not initialized.")
 
         self.timer.start_time = None
-        for event, callback in [
-            ("pre_run_cell", self.__autofix),
-            ("pre_run_cell", self.timer.start),
-            ("post_run_cell", self.timer.stop),
-        ]:
+        for event, callback in self._events:
             with contextlib.suppress(Exception):
                 self.shell.events.unregister(event, callback)
