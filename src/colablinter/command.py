@@ -61,7 +61,7 @@ def execute_command(command: list[str], input_data: str) -> str | None:
         return result.stdout.strip()
     except Exception as e:
         logger.exception(f"Error running command: {e}")
-        return None
+        return
 
 
 def cell_check(cell: str) -> None:
@@ -76,18 +76,18 @@ def cell_check_fix(cell: str) -> str | None:
     fixed_code = execute_command(CELL_CHECK_FIX_COMMAND, input_data=cell)
     if isinstance(fixed_code, str) and fixed_code.strip():
         return fixed_code.strip()
-    return None
+    return
 
 
 def cell_check_unsafe_fix(cell: str) -> str | None:
     fixed_code = execute_command(CELL_CHECK_UNSAFE_FIX_COMMAND, input_data=cell)
     if isinstance(fixed_code, str) and fixed_code.strip():
         return fixed_code.strip()
-    return None
+    return
 
 
 def cell_format(cell: str) -> str | None:
     formatted_code = execute_command(CELL_FORMAT_COMMAND, input_data=cell)
     if isinstance(formatted_code, str) and formatted_code.strip():
         return formatted_code.strip()
-    return None
+    return

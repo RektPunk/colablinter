@@ -24,7 +24,7 @@ class ColabLinterMagics(Magics):
     @cell_magic
     def clcheck(self, line: str, cell: str) -> None:
         if self._is_processing:
-            return None
+            return
         stripped_cell = cell.strip()
         cell_check(stripped_cell)
         self.__execute(stripped_cell)
@@ -32,7 +32,7 @@ class ColabLinterMagics(Magics):
     @cell_magic
     def clunsafefix(self, line: str, cell: str) -> None:
         if self._is_processing:
-            return None
+            return
 
         if self.shell is None:
             raise RuntimeError("IPython shell is not initialized.")
@@ -61,7 +61,7 @@ class ColabLinterMagics(Magics):
 
     def __execute(self, cell: str) -> None:
         if self._is_processing:
-            return None
+            return
 
         if self.shell is None:
             raise RuntimeError("IPython shell is not initialized.")
@@ -81,35 +81,35 @@ class ColabLinterMagics(Magics):
 
     def __autofix(self, info: ExecutionInfo) -> None:
         if self._is_processing or not self._is_autofix_active:
-            return None
+            return
 
         if (
             self.shell is None
             or info.raw_cell is None
             or not isinstance(info.raw_cell, str)
         ):
-            return None
+            return
 
         stripped_cell = info.raw_cell.strip()
         if stripped_cell == "":
-            return None
+            return
 
         if stripped_cell.startswith(("%", "!")):
             logger.info(
                 "Autofix skipped: System or Magic command detected. "
                 "To disable autofix, run: %clautofix off"
             )
-            return None
+            return
 
         fixed_code = cell_check_fix(stripped_cell)
         if fixed_code is None:
             logger.error("Linter check failed during auto-format.")
-            return None
+            return
 
         formatted_code = cell_format(fixed_code)
         if formatted_code is None:
             logger.error("Formatter failed during auto-format.")
-            return None
+            return
 
         self.shell.set_next_input(formatted_code, replace=True)
 

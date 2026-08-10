@@ -12,4 +12,3 @@ try:
 
 except Exception as e:
     logger.exception(f"Initialization failed: {e}")
-    pass
