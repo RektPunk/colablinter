@@ -15,7 +15,7 @@ from colablinter.logger import logger
 
 @magics_class
 class ColabLinterMagics(Magics):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self._is_autofix_active = True
         self._is_processing = False
@@ -24,8 +24,14 @@ class ColabLinterMagics(Magics):
     def clcheck(self, line: str, cell: str) -> None:
         if self._is_processing:
             return
+
         stripped_cell = cell.strip()
-        cell_check(stripped_cell)
+        report = cell_check(stripped_cell)
+        if report:
+            logger.info(report)
+        else:
+            logger.info("No issues found. Code is clean.")
+
         self._execute(stripped_cell)
 
     @cell_magic
@@ -77,24 +83,20 @@ class ColabLinterMagics(Magics):
                 self._register()
 
     def _autofix(self, info: ExecutionInfo) -> None:
-        if self._is_processing or not self._is_autofix_active:
-            return
-
         if (
-            self.shell is None
+            self._is_processing
+            or not self._is_autofix_active
+            or self.shell is None
             or info.raw_cell is None
             or not isinstance(info.raw_cell, str)
+            or (stripped_cell := info.raw_cell.strip()) == ""
         ):
-            return
-
-        stripped_cell = info.raw_cell.strip()
-        if stripped_cell == "":
             return
 
         if stripped_cell.startswith(("%", "!", "?")):
             logger.info(
                 "Autofix skipped: System or Magic command detected. "
-                "To disable autofix, run: %clautofix off"
+                "To disable autofix, run: %clautofix off",
             )
             return
 
@@ -108,6 +110,10 @@ class ColabLinterMagics(Magics):
         if formatted_code is None:
             logger.error("Formatter failed during auto-format.")
             return
+
+        remaining_report = cell_check(formatted_code)
+        if remaining_report:
+            logger.warning(f"Remaining issues:\n{remaining_report}")
 
         if stripped_cell == formatted_code:
             return
@@ -128,4 +134,4 @@ class ColabLinterMagics(Magics):
             raise RuntimeError("IPython shell is not initialized.")
 
         with contextlib.suppress(Exception):
-            self.shell.events.register("pre_run_cell", self._autofix)
+            self.shell.events.unregister("pre_run_cell", self._autofix)
