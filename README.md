@@ -104,7 +104,7 @@ F841 Local variable `some_string` is assigned to but never used
 help: Remove assignment to unused variable `some_string`
   |
 1 | def invalid_code(x):
--    some_string = "foo"
+  -     some_string = "foo"
 2 |     return x
   |
 note: This is an unsafe fix and may change runtime behavior
