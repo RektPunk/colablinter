@@ -10,7 +10,7 @@ CELL_CHECK_COMMAND = [
     "B,E,F,I,UP,SIM",
     "--ignore",
     "F401,E501",
-    "--stdin-filename=tmp.py",
+    "--stdin-filename=cell",
     "-",
 ]
 CELL_CHECK_FIX_COMMAND = [
@@ -22,7 +22,7 @@ CELL_CHECK_FIX_COMMAND = [
     "B,E,F,I,UP,SIM",
     "--ignore",
     "F401,E501",
-    "--stdin-filename=tmp.py",
+    "--stdin-filename=cell",
     "-",
 ]
 CELL_CHECK_UNSAFE_FIX_COMMAND = [
@@ -35,14 +35,14 @@ CELL_CHECK_UNSAFE_FIX_COMMAND = [
     "B,E,F,I,UP,SIM",
     "--ignore",
     "F401,E501",
-    "--stdin-filename=tmp.py",
+    "--stdin-filename=cell",
     "-",
 ]
 CELL_FORMAT_COMMAND = [
     "ruff",
     "format",
     "--quiet",
-    "--stdin-filename=tmp.py",
+    "--stdin-filename=cell",
     "-",
 ]
 
