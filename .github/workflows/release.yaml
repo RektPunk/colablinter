@@ -3,7 +3,7 @@ name: Publish to PyPI
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
 
 jobs:
   build-and-publish:
@@ -12,9 +12,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-
-      - name: Setup python
-        uses: actions/setup-python@v6
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7

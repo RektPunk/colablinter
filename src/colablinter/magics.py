@@ -1,4 +1,5 @@
 import contextlib
+import time
 
 from IPython.core.interactiveshell import ExecutionInfo
 from IPython.core.magic import Magics, cell_magic, line_magic, magics_class
@@ -10,21 +11,14 @@ from colablinter.command import (
     cell_format,
 )
 from colablinter.logger import logger
-from colablinter.timer import CellTimer
 
 
 @magics_class
 class ColabLinterMagics(Magics):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.timer = CellTimer()
         self._is_autofix_active = True
         self._is_processing = False
-        self._events = (
-            ("pre_run_cell", self._autofix),
-            ("pre_run_cell", self.timer.start),
-            ("post_run_cell", self.timer.stop),
-        )
 
     @cell_magic
     def clcheck(self, line: str, cell: str) -> None:
@@ -97,13 +91,14 @@ class ColabLinterMagics(Magics):
         if stripped_cell == "":
             return
 
-        if stripped_cell.startswith(("%", "!")):
+        if stripped_cell.startswith(("%", "!", "?")):
             logger.info(
                 "Autofix skipped: System or Magic command detected. "
                 "To disable autofix, run: %clautofix off"
             )
             return
 
+        start_time = time.perf_counter()
         fixed_code = cell_check_fix(stripped_cell)
         if fixed_code is None:
             logger.error("Linter check failed during auto-format.")
@@ -114,22 +109,23 @@ class ColabLinterMagics(Magics):
             logger.error("Formatter failed during auto-format.")
             return
 
+        if stripped_cell == formatted_code:
+            return
+
         self.shell.set_next_input(formatted_code, replace=True)
+        logger.success(f"✔ Done ({time.perf_counter() - start_time:.3f}s)")
 
     def _register(self) -> None:
         if self.shell is None:
             raise RuntimeError("IPython shell is not initialized.")
 
         self._unregister()
-        for event, callback in self._events:
-            with contextlib.suppress(Exception):
-                self.shell.events.register(event, callback)
+        with contextlib.suppress(Exception):
+            self.shell.events.register("pre_run_cell", self._autofix)
 
     def _unregister(self) -> None:
         if self.shell is None:
             raise RuntimeError("IPython shell is not initialized.")
 
-        self.timer.start_time = None
-        for event, callback in self._events:
-            with contextlib.suppress(Exception):
-                self.shell.events.unregister(event, callback)
+        with contextlib.suppress(Exception):
+            self.shell.events.register("pre_run_cell", self._autofix)
