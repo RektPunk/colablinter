@@ -9,8 +9,8 @@ CELL_CHECK_COMMAND = [
     "--select",
     "B,E,F,I,UP,SIM",
     "--ignore",
-    "F401,E501",
-    "--stdin-filename=tmp.py",
+    "F401,F821,E501",
+    "--stdin-filename=cell",
     "-",
 ]
 CELL_CHECK_FIX_COMMAND = [
@@ -21,8 +21,8 @@ CELL_CHECK_FIX_COMMAND = [
     "--select",
     "B,E,F,I,UP,SIM",
     "--ignore",
-    "F401,E501",
-    "--stdin-filename=tmp.py",
+    "F401,F821,E501",
+    "--stdin-filename=cell",
     "-",
 ]
 CELL_CHECK_UNSAFE_FIX_COMMAND = [
@@ -34,15 +34,15 @@ CELL_CHECK_UNSAFE_FIX_COMMAND = [
     "--select",
     "B,E,F,I,UP,SIM",
     "--ignore",
-    "F401,E501",
-    "--stdin-filename=tmp.py",
+    "F401,F821,E501",
+    "--stdin-filename=cell",
     "-",
 ]
 CELL_FORMAT_COMMAND = [
     "ruff",
     "format",
     "--quiet",
-    "--stdin-filename=tmp.py",
+    "--stdin-filename=cell",
     "-",
 ]
 
@@ -65,12 +65,9 @@ def execute_command(command: list[str], input_data: str) -> str | None:
     return result.stdout
 
 
-def cell_check(cell: str) -> None:
+def cell_check(cell: str) -> str | None:
     report = execute_command(CELL_CHECK_COMMAND, input_data=cell)
-    if report and report.strip():
-        logger.info(report.strip())
-    else:
-        logger.info("No issues found. Code is clean.")
+    return report.strip() if report and report.strip() else None
 
 
 def cell_check_fix(cell: str) -> str | None:

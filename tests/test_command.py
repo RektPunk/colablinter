@@ -8,25 +8,17 @@ from colablinter.command import (
 )
 
 
-def test_cell_check_real(monkeypatch):
-    logs = []
-    monkeypatch.setattr("colablinter.command.logger.info", lambda msg: logs.append(msg))
-
+def test_cell_check_real():
     # Code with a real linting error (F541: f-string without placeholders)
     bad_code = "f'test'"
-    cell_check(bad_code)
+    report = cell_check(bad_code)
+    assert report is not None
+    assert "F541" in report
 
-    assert any("F541" in log for log in logs)
 
-
-def test_cell_check_clean_real(monkeypatch):
-    logs = []
-    monkeypatch.setattr("colablinter.command.logger.info", lambda msg: logs.append(msg))
-
+def test_cell_check_clean_real():
     clean_code = "x = 1"
-    cell_check(clean_code)
-
-    assert "No issues found. Code is clean." in logs
+    assert cell_check(clean_code) is None
 
 
 def test_cell_check_fix_real():
@@ -50,7 +42,7 @@ def test_cell_format_real():
     assert formatted == "x = 1 + 2"
 
 
-def test_cell_check_ignore_f401(monkeypatch):
+def test_cell_check_ignore_f401():
     # F401 should be ignored even in complex cases
     # We must sort imports as Ruff expects to avoid I001 error
     code = inspect.cleandoc("""
@@ -60,11 +52,17 @@ def test_cell_check_ignore_f401(monkeypatch):
 
         x = 1
     """)
-    logs = []
-    monkeypatch.setattr("colablinter.command.logger.info", lambda msg: logs.append(msg))
+    assert cell_check(code) is None
 
-    cell_check(code)
-    assert "No issues found. Code is clean." in logs
+
+def test_cell_check_ignore_f821():
+    # F821 should be ignored (e.g., variables defined in previous Jupyter cells)
+    code = inspect.cleandoc("""
+        # df and model are assumed to be defined in a previous cell
+        result = df.merge(other_df, on="id")
+        predictions = model.predict(result)
+    """)
+    assert cell_check(code) is None
 
 
 def test_cell_check_unsafe_fix_multiline():
@@ -88,8 +86,7 @@ def test_cell_format_complex():
     assert formatted == expected
 
 
-def test_preserve_strings_and_comments(monkeypatch):
-
+def test_preserve_strings_and_comments():
     # Ensure that linting/formatting doesn't mess up strings or comments
     code = inspect.cleandoc("""
         def greet():
@@ -99,11 +96,7 @@ def test_preserve_strings_and_comments(monkeypatch):
             return s
     """)
     # cell_check should find NO issues because E711 shouldn't trigger inside strings/comments
-    logs = []
-    monkeypatch.setattr("colablinter.command.logger.info", lambda msg: logs.append(msg))
-
-    cell_check(code)
-    assert "No issues found. Code is clean." in logs
+    assert cell_check(code) is None
 
 
 def test_cell_check_unsafe_fix_complex():

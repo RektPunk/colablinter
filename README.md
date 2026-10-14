@@ -1,137 +1,171 @@
 <div style="text-align: center;">
-  <img src="https://capsule-render.vercel.app/api?type=transparent&fontColor=0047AB&text=colablinter&height=120&fontSize=90">
+  <img src="https://capsule-render.vercel.app/api?type=transparent&fontColor=0047AB&text=colablinter&height=120&fontSize=90"/>
 </div>
 
-**`colablinter`** is an **IPython magic command extension** designed for Jupyter and Google Colab notebooks.
-It integrates the high-speed linter **`ruff`** to perform code quality checks and formatting directly within Jupyter/Colab cells.
-It allows developers to lint code on a **cell-by-cell** basis with simple commands. Try it here:
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/RektPunk/colablinter/blob/main/examples/notebook.ipynb)
+**`colablinter`** is an **IPython magic command extension** for Jupyter and Google Colab notebooks. It integrates the fast Python linter and formatter **`ruff`** to check code quality and format code directly within notebook cells. It supports cell-by-cell linting and automatic formatting with simple magic commands. Try it here: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/RektPunk/colablinter/blob/main/examples/notebook.ipynb)
 
-## Magic cell Commands
+## Magic Commands
 
-| Command             | Description                                                                                                                  |
-| :------------------ | :--------------------------------------------------------------------------------------------------------------------------- |
-| **`%clautofix`**    | Activates or deactivates automatic fix including import sorting, formatting, and execution time display before every cell.   |
-| **`%%clcheck`**     | Displays a linting report for the current cell.                                                                              |
-| **`%%clunsafefix`** | Performs a linting check and applies "unsafe" fixes that might change code logic (e.g., changing mutable default arguments). |
+| Command             | Description                                                                                                                     |
+| :------------------ | :------------------------------------------------------------------------------------------------------------------------------ |
+| **`%clautofix`**    | Enables or disables automatic fixing and formatting before cell execution, including import sorting and execution time display. |
+| **`%%clcheck`**     | Displays a linting report for the current cell before executing it.                                                             |
+| **`%%clunsafefix`** | Checks the current cell and applies unsafe fixes that may change code behavior.                                                 |
 
-After executing a cell magic command, the checked/formatted code is immediately executed (if applicable), maintaining the notebook workflow.
+The cell's code is executed after processing, where applicable, preserving the usual notebook workflow.
 
 ## Installation
 
-Just run it in colab:
+Install `colablinter` in your Jupyter or Colab environment:
 
 ```python
 !uv pip install colablinter
 ```
 
-The extension must be explicitly loaded in the notebook session before use.
+Load the extension in the notebook session:
 
 ```python
 %load_ext colablinter
 ```
 
-Once loaded, `%clautofix` is activated by default to keep your code clean from the start.
+Automatic fixing is enabled by default after loading the extension.
 
 ## Usage
 
-1. Activate/Deactivate Auto Fix (`%clautofix`)
+### 1. Automatic Fixing (`%clautofix`)
 
-   The `%clautofix` line magic allows you to automatically fix code before every code cell is executed.
+The `%clautofix` line magic automatically fixes and formats code before each cell is executed.
 
-   ```python
-   import math, sys;
+**Before:**
 
-   class Example(   object ):
-       def __init__    ( self, bar ):
-         if bar : bar+=1;  bar=bar* bar   ; return bar
-         else:
-                       some_string = "foo"
-                       return (sys.path, some_string)
-   ```
+```python
+import math, sys;
 
-   Fixed Cell:
+class Example(   object ):
+    def __init__    ( self, bar ):
+        if bar : bar+=1;  bar=bar* bar
+        else:
+            some_string = "foo"
+            print(some_string, sys.path)
+```
 
-   ```python
-   import math
-   import sys
+**After:**
+
+```python
+import math
+import sys
 
 
-   class Example:
-       def __init__(self, bar):
-           if bar:
-               bar += 1
-               bar = bar * bar
-               return bar
-           else:
-               some_string = "foo"
-               return (sys.path, some_string)
-   ```
+class Example:
+    def __init__(self, bar):
+        if bar:
+            bar += 1
+            bar = bar * bar
+        else:
+            some_string = "foo"
+            print(some_string, sys.path)
+```
 
-   To deactivate auto fixing:
+To disable automatic fixing:
 
-   ```python
-   %clautofix off # %clautofix on when you want to activate
-   ```
+```python
+%clautofix off
+```
 
-2. Check cell quality (`%%clcheck`)
+Re-enable it whenever needed:
 
-   Use `%%clcheck` to see linting reports for the code below the command. After the report is displayed, the code in the cell executes as normal.
+```python
+%clautofix on
+```
 
-   ```python
-   %%clcheck
+### 2. Check Cell Quality (`%%clcheck`)
 
-   def invalid_code(x):
-       return x + y
-   ```
+Use `%%clcheck` to display linting reports for the code in the current cell. The cell is then executed normally.
 
-   Output:
+```python
+%%clcheck
 
-   ```bash
-   [ColabLinter:INFO] F821 Undefined name `y`
-   --> tmp.py:2:16
-     |
-   1 | def invalid_code(x):
-   2 |     return x + y
-     |                ^
-     |
-   Found 1 error.
-   ```
+def invalid_code(x):
+    some_string = "foo"
+    return x
+```
 
-3. Unsafe Fix (`%%clunsafefix`)
+Example output:
 
-   Use `%%clunsafefix` when you want `ruff` to aggressively clean up your code, including rules that are typically considered risky (like fixing mutable default arguments or complex refactoring).
+```text
+[ColabLinter] F841 Local variable `some_string` is assigned to but never used
+ --> cell:2:5
+  |
+1 | def invalid_code(x):
+2 |     some_string = "foo"
+  |     ^^^^^^^^^^^
+3 |     return x
+  |
+help: Remove assignment to unused variable `some_string`
+  |
+1 | def invalid_code(x):
+  -     some_string = "foo"
+2 |     return x
+  |
+note: This is an unsafe fix and may change runtime behavior
+```
 
-   ```python
-   %%clunsafefix
+### 3. Unsafe Fixes (`%%clunsafefix`)
 
-   def process_data(new_item, current_list=[]):
-       old_item = "redundant"
-       if new_item:
-           if isinstance(new_item, str):
-               current_list.append(new_item)
+Use `%%clunsafefix` to apply Ruff's unsafe fixes in addition to regular linting fixes. These fixes may change code behavior, so review the result before relying on it.
 
-       if len(current_list) > 0:
-           return True
-       else:
-           return False
-   ```
+```python
+%%clunsafefix
 
-   Fixed Cell:
+def process_data(new_item, current_list=[]):
+    old_item = "redundant"
+    if new_item:
+        if isinstance(new_item, str):
+            current_list.append(new_item)
 
-   ```python
-   def process_data(new_item, current_list=None):
-       if current_list is None:
-           current_list = []
-       if new_item and isinstance(new_item, str):
-           current_list.append(new_item)
+    if len(current_list) > 0:
+        return True
+    else:
+        return False
+```
 
-       return len(current_list) > 0
-   ```
+**Fixed Cell:**
+
+```python
+def process_data(new_item, current_list=None):
+    if current_list is None:
+        current_list = []
+    if new_item and isinstance(new_item, str):
+        current_list.append(new_item)
+
+    return len(current_list) > 0
+```
+
+## Linting Rules
+
+`colablinter` uses the following Ruff rule families for linting:
+
+| Prefix  | Description                                                  |
+| :------ | :----------------------------------------------------------- |
+| **B**   | flake8-bugbear: Detects potential bugs and design problems.  |
+| **E**   | pycodestyle: Checks code style and common errors.            |
+| **F**   | Pyflakes: Detects potential errors, such as undefined names. |
+| **I**   | isort: Sorts and organizes imports.                          |
+| **UP**  | pyupgrade: Suggests modern Python syntax.                    |
+| **SIM** | flake8-simplify: Identifies opportunities to simplify code.  |
+
+The following rules are ignored to better support interactive notebook workflows:
+
+- **F401 (Unused imports):** Allows imports in one cell to be used in subsequent cells.
+- **F821 (Undefined names):** Avoids false positives when names are defined in previously executed cells.
+- **E501 (Line too long):** Allows long URLs, queries, and exploratory expressions without line-length warnings.
+
+These exceptions support common notebook workflows but may also hide genuine issues.
+
+`colablinter` also uses `ruff format` to format code, independently of the linting rules above.
 
 ## Known Caveats & Troubleshooting
 
-**Note on F401:**
-The linter is explicitly configured to **ignore F401 errors** (unused imports). This is to ensure compatibility with the stateful nature of Jupyter/Colab notebooks, where imports in one cell may be necessary for code execution in subsequent cells, preventing unintended breakage of the notebook's execution flow.
+### Magic and Terminal Commands
 
-Magic Command Execution: When using magic or terminal commands while `%clautofix` is active, the auto-format mechanism is temporarily suppressed during the final execution step to prevent infinite loops or dual checks. If you want to disable auto-formatting, use `%clautofix off`
+When %clautofix is enabled, automatic formatting is temporarily suppressed during the final execution of magic and terminal commands to prevent repeated formatting or linting.
