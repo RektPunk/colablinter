@@ -141,11 +141,20 @@ def process_data(new_item, current_list=None):
     return len(current_list) > 0
 ```
 
-## Known Caveats & Troubleshooting
+## Linting Rules
 
-### Ignored Linting Rules
+`colablinter` uses the following Ruff rule families for linting:
 
-The following Ruff rules are ignored to better support interactive Jupyter and Colab notebooks:
+| Prefix  | Description                                                  |
+| :------ | :----------------------------------------------------------- |
+| **B**   | flake8-bugbear: Detects potential bugs and design problems.  |
+| **E**   | pycodestyle: Checks code style and common errors.            |
+| **F**   | Pyflakes: Detects potential errors, such as undefined names. |
+| **I**   | isort: Sorts and organizes imports.                          |
+| **UP**  | pyupgrade: Suggests modern Python syntax.                    |
+| **SIM** | flake8-simplify: Identifies opportunities to simplify code.  |
+
+The following rules are ignored to better support interactive notebook workflows:
 
 - **F401 (Unused imports):** Allows imports in one cell to be used in subsequent cells.
 - **F821 (Undefined names):** Avoids false positives when names are defined in previously executed cells.
@@ -153,6 +162,10 @@ The following Ruff rules are ignored to better support interactive Jupyter and C
 
 These exceptions support common notebook workflows but may also hide genuine issues.
 
+`colablinter` also uses `ruff format` to format code, independently of the linting rules above.
+
+## Known Caveats & Troubleshooting
+
 ### Magic and Terminal Commands
 
-When `%clautofix` is enabled, automatic formatting is temporarily suppressed during the final execution of magic and terminal commands to prevent repeated formatting or linting.
+When %clautofix is enabled, automatic formatting is temporarily suppressed during the final execution of magic and terminal commands to prevent repeated formatting or linting.
