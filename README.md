@@ -156,9 +156,3 @@ These exceptions support common notebook workflows but may also hide genuine iss
 ### Magic and Terminal Commands
 
 When `%clautofix` is enabled, automatic formatting is temporarily suppressed during the final execution of magic and terminal commands to prevent repeated formatting or linting.
-
-To disable automatic formatting, run:
-
-```python
-%clautofix off
-```

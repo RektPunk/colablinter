@@ -111,15 +111,12 @@ class ColabLinterMagics(Magics):
             logger.error("Formatter failed during auto-format.")
             return
 
-        remaining_report = cell_check(formatted_code)
-        if remaining_report:
-            logger.warning(f"Remaining issues:\n{remaining_report}")
-
         if stripped_cell == formatted_code:
             return
 
         self.shell.set_next_input(formatted_code, replace=True)
-        logger.success(f"✔ Done ({time.perf_counter() - start_time:.3f}s)")
+        duration = time.perf_counter() - start_time
+        logger.success(f"✔ Done ({duration:.3f}s)")
 
     def _register(self) -> None:
         if self.shell is None:
