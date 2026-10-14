@@ -3,8 +3,9 @@ import sys
 from loguru import logger
 
 logger.remove()
-logger.add(
+_ = logger.add(
     sys.stdout,
-    format="<level>{message}</level>",
+    format="<cyan><bold>[ColabLinter]</bold></cyan> <level>{message}</level>",
     level="INFO",
+    colorize=True,
 )

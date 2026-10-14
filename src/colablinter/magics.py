@@ -25,14 +25,18 @@ class ColabLinterMagics(Magics):
         if self._is_processing:
             return
 
+        start_time = time.perf_counter()
         stripped_cell = cell.strip()
         report = cell_check(stripped_cell)
         if report:
             logger.info(report)
+            msg = "Check completed"
         else:
-            logger.info("No issues found. Code is clean.")
+            msg = "No issues found"
 
         self._execute(stripped_cell)
+        duration = time.perf_counter() - start_time
+        logger.success(f"✔ {msg} ({duration:.3f}s)")
 
     @cell_magic
     def clunsafefix(self, line: str, cell: str) -> None:
@@ -42,13 +46,20 @@ class ColabLinterMagics(Magics):
         if self.shell is None:
             raise RuntimeError("IPython shell is not initialized.")
 
+        start_time = time.perf_counter()
         stripped_cell = cell.strip()
         fixed_code = cell_check_unsafe_fix(stripped_cell)
-        if fixed_code:
-            self._execute(fixed_code)
-            self.shell.set_next_input(fixed_code, replace=True)
+        if fixed_code and fixed_code != stripped_cell:
+            code = fixed_code
+            msg = "Unsafe fixes applied"
         else:
-            self._execute(stripped_cell)
+            code = stripped_cell
+            msg = "No fixes needed"
+
+        self._execute(code)
+        self.shell.set_next_input(code, replace=True)
+        duration = time.perf_counter() - start_time
+        logger.success(f"✔ {msg} ({duration:.3f}s)")
 
     @line_magic
     def clautofix(self, line: str) -> None:
@@ -116,7 +127,7 @@ class ColabLinterMagics(Magics):
 
         self.shell.set_next_input(formatted_code, replace=True)
         duration = time.perf_counter() - start_time
-        logger.success(f"✔ Done ({duration:.3f}s)")
+        logger.success(f"✔ Auto-format completed ({duration:.3f}s)")
 
     def _register(self) -> None:
         if self.shell is None:

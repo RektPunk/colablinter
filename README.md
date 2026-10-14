@@ -93,7 +93,7 @@ def invalid_code(x):
 Example output:
 
 ```text
-F841 Local variable `some_string` is assigned to but never used
+[ColabLinter] F841 Local variable `some_string` is assigned to but never used
  --> cell:2:5
   |
 1 | def invalid_code(x):
